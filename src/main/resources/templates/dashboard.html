@@ -4,6 +4,7 @@
 <head>
     <meta Content-Type="text/html" charset="UTF-8">
     <title>DashBoard</title>
+
     <style>
         section{
             display: inline-block;
@@ -55,7 +56,6 @@
 </form>
 
 
-
 </br>
 <form th:action="@{/logout}" method="get">
     <button type="submit">Logout</button>
@@ -66,12 +66,14 @@
 <div th:if="${#strings.toString(param.respDelImg)}">
     <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'ok'" class="alert alert-success"
          role="alert" style="background: rgba(138,221,45,0.5)">
-        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}" style="text-align: center; font-weight: bold; margin: auto"></p>
+        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}"
+           style="text-align: center; font-weight: bold; margin: auto"></p>
         <a id="respuestaDel" th:href="${uri}">X</a>
     </div>
     <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'mal'" class="alert alert-success"
          role="alert" style="background: rgba(255,0,0,0.5);">
-        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}" style="text-align: center; font-weight: bold; margin: auto"></p>
+        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}"
+           style="text-align: center; font-weight: bold; margin: auto"></p>
         <a id="respuestaDel" th:href="${uri}">X</a>
     </div>
 </div>

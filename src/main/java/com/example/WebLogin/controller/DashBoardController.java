@@ -37,27 +37,23 @@ public class DashBoardController {
     private String username = "";
     private String SEPARADOR = File.separator;
 
-    @PostMapping("/")
-    public String loginUser(@RequestParam("username") String username, Model model, HttpServletRequest request) {
+    @PostMapping("/galeria/**")
+    public String cargarGaleriaPostquestParam(@RequestParam("username") String username, Model model, HttpServletRequest request) {
+        System.out.println("GALERIA POST MAPPING");
         this.username = username;
-        cargaContenido(model, username, request);
-        return "dashboard";
-    }
-
-    @GetMapping("/")
-    public String vuelveInicio(Model model, HttpServletRequest request) {
         cargaContenido(model, this.username, request);
         return "dashboard";
     }
 
     @GetMapping("/galeria/**")
-    public String cargarGaleria(Model model, HttpServletRequest request) {
-        cargaContenido(model, username, request);
+    public String cargaGaleriaGet(Model model, HttpServletRequest request) {
+        System.out.println("GALERIA GET MAPPING");
+        cargaContenido(model, this.username, request);
         return "dashboard";
     }
 
+
     public void cargaContenido(Model model, String username, HttpServletRequest request) {
-        System.out.println("CONSULTANDO EN DASHBOARD EN cargaContenido");
         String uri = request.getRequestURI();
         uri = uriDecoder(uri);
         uri = devuelveUriLimpio(uri);

@@ -13,7 +13,7 @@ public class LoginController {
     private String username = "";
 
 
-    @GetMapping("/login")
+    @GetMapping("/")
     public String login() {
         System.out.println("Estamos en el login");
         return "login";

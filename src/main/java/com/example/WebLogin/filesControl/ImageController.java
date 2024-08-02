@@ -46,9 +46,6 @@ public class ImageController {
 
     public ResponseEntity<Resource> serveFile(String filename, String path) {
         path = DashBoardController.uriDecoder(path);
-
-        System.out.println( "CONFIG PATH: "+path);
-
         ResponseEntity<Resource> responseEntity = null;
         File configPath = new File(path);
         Path imageLocation = Paths.get(path);
