@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta Content-Type="text/html" charset="UTF-8">
+    <title>DashBoard</title>
+    <style>
+        section{
+            display: inline-block;
+            border: 1px solid black;
+            padding: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        section:hover{
+            opacity: 0.4;
+        }
+
+        #respuestaDel{
+        display: inline-block;
+        }
+
+        #cajaDel{
+            text-align: center;
+        }
+
+        #cajaDel a{
+            font-size: 30px;
+        }
+
+    </style>
+</head>
+<body>
+<h1 th:text="${username}"></h1>
+</br>
+<h3>
+    <a th:each="path : ${uriUbicacion}" th:text="${path.carpeta}" th:href="${path.uriTotal}"
+       style="display: in-line;"></a>
+</h3>
+</br>
+
+
+<form th:action="@{/uploadImg}" method="post" enctype="multipart/form-data">
+    <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*" multiple/>
+    <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
+    <input type="submit" value="Enviar"/>
+</form>
+</br>
+<form th:action="@{/mkDir}" method="post">
+    <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
+    CREAR DIRECTORIO:
+    <input id="dirName" name="dirName" type="text" formmethod="post"/>
+    <input type="submit" value="CREAR"/>
+</form>
+
+
+
+</br>
+<form th:action="@{/logout}" method="get">
+    <button type="submit">Logout</button>
+</form>
+
+
+</br>
+<div th:if="${#strings.toString(param.respDelImg)}">
+    <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'ok'" class="alert alert-success"
+         role="alert" style="background: rgba(138,221,45,0.5)">
+        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}" style="text-align: center; font-weight: bold; margin: auto"></p>
+        <a id="respuestaDel" th:href="${uri}">X</a>
+    </div>
+    <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'mal'" class="alert alert-success"
+         role="alert" style="background: rgba(255,0,0,0.5);">
+        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}" style="text-align: center; font-weight: bold; margin: auto"></p>
+        <a id="respuestaDel" th:href="${uri}">X</a>
+    </div>
+</div>
+</br>
+
+<!-- APARTADO DE CONTENIDO DE DIRECTORIOS -->
+<h3 th:if="${folderStatus} == 'empty'">La carpeta está vacia.</h3>
+<section th:each="src : ${dirList}">
+    <a th:href="${src}"><img th:name="${src}" src="/images/carpeta.png" width="300px" height="300px"></a>
+    <p th:text="${src}"></p>
+    <form th:action="@{/delImgOrDirectory}" method="post">
+        <input id="path" name="path" th:value="${src}" type="hidden"/>
+        <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
+        <button type="submit">Eliminar</button>
+    </form>
+</section>
+
+<section th:each="foto : ${fileList}">
+    <img th:id="${foto}" th:name="${foto}" th:src="${foto}" width="300px" height="300px">
+    <p th:text="${foto}"></p>
+    <form th:action="@{/delImgOrDirectory}" method="post">
+        <input id="path" name="path" th:value="${foto}" type="hidden"/>
+        <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
+        <button type="submit">Eliminar</button>
+    </form>
+</section>
+
+</body>
+</html>
