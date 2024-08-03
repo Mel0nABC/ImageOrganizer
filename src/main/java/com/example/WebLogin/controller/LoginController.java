@@ -9,10 +9,6 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class LoginController {
 
-    private String folder = ReadConfigPath.readPath();
-    private String username = "";
-
-
     @GetMapping("/")
     public String login() {
         System.out.println("Estamos en el login");
@@ -22,6 +18,6 @@ public class LoginController {
     @GetMapping("/logout")
     public String logOff() throws Exception {
         System.out.println("HACIENDO LOGOUT");
-        return "redirect:/login";
+        return "redirect:/";
     }
 }

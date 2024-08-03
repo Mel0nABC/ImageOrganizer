@@ -33,12 +33,19 @@
     </style>
 </head>
 <body>
+
+
 <h1 th:text="${username}"></h1>
 </br>
 <h3>
-    <a th:each="path : ${uriUbicacion}" th:text="${path.carpeta}" th:href="${path.uriTotal}"
-       style="display: in-line;"></a>
+    <a th:each="path : ${uriUbicacion}"
+       th:text="${path.carpeta}"
+       th:href="${path.uriTotal}"
+       style="display: in-line;">
+
+    </a>
 </h3>
+
 </br>
 
 
@@ -84,11 +91,13 @@
 <section th:each="src : ${dirList}">
     <a th:href="${src}"><img th:name="${src}" src="/images/carpeta.png" width="300px" height="300px"></a>
     <p th:text="${src}"></p>
-    <form th:action="@{/delImgOrDirectory}" method="post">
-        <input id="path" name="path" th:value="${src}" type="hidden"/>
-        <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
-        <button type="submit">Eliminar</button>
-    </form>
+    <div th:if="${uriUbicacion.size} > 1">
+        <form th:action="@{/delImgOrDirectory}" method="post">
+            <input id="path" name="path" th:value="${src}" type="hidden"/>
+            <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
+            <button type="submit">Eliminar</button>
+        </form>
+    </div>
 </section>
 
 <section th:each="foto : ${fileList}">

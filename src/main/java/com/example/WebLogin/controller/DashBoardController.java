@@ -1,12 +1,12 @@
 package com.example.WebLogin.controller;
 
 
-import com.example.WebLogin.filesControl.GestorArchivosCarpetas;
 import com.example.WebLogin.filesControl.ReadConfigPath;
 import com.example.WebLogin.otherClasses.UriLinks;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -15,10 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 
 import java.nio.file.Files;
@@ -30,37 +27,61 @@ import java.util.Collections;
 import java.util.List;
 
 
+
 @Controller
 public class DashBoardController {
 
-    private String folder = ReadConfigPath.readPath();
     private String username = "";
     private String SEPARADOR = File.separator;
+    private Authentication authentication;
+    private static String actualConfigDirectory;
+    private String actualDirectory = "";
 
     @PostMapping("/galeria/**")
-    public String cargarGaleriaPostquestParam(@RequestParam("username") String username, Model model, HttpServletRequest request) {
+    public String cargarGaleriaPostquestParam(Model model, HttpServletRequest request) {
         System.out.println("GALERIA POST MAPPING");
-        this.username = username;
-        cargaContenido(model, this.username, request);
-        return "dashboard";
+        authentication = SecurityContextHolder.getContext().getAuthentication();
+        this.username = authentication.getName();
+        cargaContenido(model, request);
+        return "redirect:/galeria";
     }
 
     @GetMapping("/galeria/**")
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
         System.out.println("GALERIA GET MAPPING");
-        cargaContenido(model, this.username, request);
+        authentication = SecurityContextHolder.getContext().getAuthentication();
+        this.username = authentication.getName();
+        cargaContenido(model,request);
         return "dashboard";
     }
 
+    public static String getActualConfigDirectory() {
+        return actualConfigDirectory;
+    }
 
-    public void cargaContenido(Model model, String username, HttpServletRequest request) {
+    public void cargaContenido(Model model,HttpServletRequest request) {
         String uri = request.getRequestURI();
         uri = uriDecoder(uri);
         uri = devuelveUriLimpio(uri);
-        String absolutFolder = folder + uri;
+        File[] filesDirList;
+        if (uri.equals("")) {
+            filesDirList = ReadConfigPath.getConfigDirList();
+        } else {
+            // Obtención de archivos y carpetas de la carpeta que corresponda.
+            String uriSinBarra = uri.substring(1, uri.length());
+            filesDirList = ReadConfigPath.getConfigDirList();
+            for (File f : filesDirList) {
+                if (f.getName().equals(uriSinBarra)) {
+                    filesDirList = f.listFiles();
+                    this.actualConfigDirectory = f.getAbsolutePath();
+                } else {
+                    String filtraUri = uri.substring((f.getName()).length(), uri.length());
+                    filesDirList = new File(actualConfigDirectory + filtraUri).listFiles();
+                    this.actualDirectory = this.actualConfigDirectory + filtraUri;
+                }
+            }
+        }
 
-        // Obtención de archivos y carpetas de la carpeta que corresponda.
-        File[] filesDirList = GestorArchivosCarpetas.getFileDirList(absolutFolder);
 
         // Se crean dos listas independientes, de archivos y directorios.
         if (filesDirList != null) {
@@ -74,8 +95,6 @@ public class DashBoardController {
                     dirList.add("/galeria" + uri + "/" + f.getName());
                 }
             }
-
-
             // Ordenamos las listas por orden alfabético.
             Collections.sort(fileList);
             Collections.sort(dirList);
@@ -123,6 +142,8 @@ public class DashBoardController {
         if (!uri.equals("/")) {
             String palabraInicio = uri.split("/")[1];
             if (palabraInicio.equals("galeria")) {
+
+
                 uri = uri.substring("/galeria".length(), uri.length());
             } else {
                 uri = uri.substring("/localImages".length(), uri.length());
@@ -135,8 +156,8 @@ public class DashBoardController {
 
 
     @PostMapping("/uploadImg")
-    public String uploadImg(@RequestParam("imgFile") MultipartFile[] multipartFileList, @RequestParam("uri") String uri, HttpServletRequest request, Model model) {
-        String pathToSave = folder + devuelveUriLimpio(uri);
+    public String uploadImg(@RequestParam("imgFile") MultipartFile[] multipartFileList, @RequestParam("uri") String uri) {
+        String pathToSave = actualDirectory;
         for (MultipartFile multipartFile : multipartFileList) {
             String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
             File uploadDir = new File(pathToSave);
@@ -161,30 +182,34 @@ public class DashBoardController {
     }
 
     @PostMapping("/mkDir")
-    public String mkDir(@RequestParam("dirName") String dirName, @RequestParam("uri") String uri, HttpServletResponse response) {
-        File dir = new File(folder + SEPARADOR + devuelveUriLimpio(uri) + SEPARADOR + dirName);
+    public String mkDir(@RequestParam("dirName") String dirName, @RequestParam("uri") String uri) {
+        File dir = new File(actualDirectory + SEPARADOR + dirName);
+        System.out.println("URI: " + uri);
+
+        System.out.println(dir.getAbsoluteFile());
         if (!dir.exists()) {
-            dir.mkdirs();
+            dir.mkdir();
             if (dir.exists()) {
                 System.out.println("Directorio creado");
             } else {
                 System.out.println("Directorio NO creado");
             }
         }
-        return "redirect:"+getUriOk(uri);
+        return "redirect:" + getUriOk(uri);
     }
 
 
     @RequestMapping("/delImgOrDirectory")
-    public String delImgOrDirectory(@RequestParam("path") String path, @RequestParam("uri") String uri, HttpServletRequest request, HttpServletResponse response, Model model) {
-
-        File imgToDel = new File(folder + devuelveUriLimpio(path));
-
+    public String delImgOrDirectory(@RequestParam("path") String path, @RequestParam("uri") String uri) {
         String respuesta;
         String delMsg;
+        String[] pathDividido = path.split("/");
+        String locate = pathDividido[pathDividido.length - 1];
+        File imgToDel = new File(actualDirectory + SEPARADOR + locate);
+
+        System.out.println("ABSOLUT PATH: " + imgToDel.getAbsoluteFile());
 
         if (imgToDel.exists() | imgToDel.isDirectory()) {
-
             if (imgToDel.isFile()) {
                 imgToDel.delete();
                 delMsg = "Imagen eliminada satisfactoriamente.";
@@ -215,6 +240,7 @@ public class DashBoardController {
 
     /**
      * Para preparar una ruta tipo uri para enviarla por redirect:
+     *
      * @param uri
      * @return
      */
@@ -225,5 +251,4 @@ public class DashBoardController {
                 .build();
         return uriComponents.toUriString();
     }
-
 }

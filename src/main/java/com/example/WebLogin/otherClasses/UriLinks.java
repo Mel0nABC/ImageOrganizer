@@ -4,6 +4,7 @@ public class UriLinks {
 
     private String carpeta, uriTotal;
 
+
     public UriLinks(String carpeta, String uriTotal) {
         this.carpeta = carpeta;
         this.uriTotal = uriTotal;
@@ -24,4 +25,6 @@ public class UriLinks {
     public void setUriTotal(String uriTotal) {
         this.uriTotal = uriTotal;
     }
+
+
 }

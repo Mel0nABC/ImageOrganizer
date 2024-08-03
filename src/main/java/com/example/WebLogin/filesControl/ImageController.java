@@ -37,7 +37,7 @@ public class ImageController {
         String path = uri.substring(0,uri.length()-filename.length());
 
 
-        String localFilePath = ReadConfigPath.readPath()+path ;
+        String localFilePath = DashBoardController.getActualConfigDirectory() ;
         ResponseEntity<Resource> foto = serveFile(filename, localFilePath);
 
         return foto;

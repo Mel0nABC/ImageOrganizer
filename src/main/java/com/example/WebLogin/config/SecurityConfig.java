@@ -38,17 +38,25 @@ public class SecurityConfig {
 //                .authorizeHttpRequests(auth -> {
 //                    auth.requestMatchers("/").permitAll();
 //                    auth.requestMatchers("/css/**", "/js/**", "/images/**", "/webfonts/**").permitAll();
-//                    auth.requestMatchers("/dashboard","/localImages/**").authenticated();
+//                    auth.requestMatchers("/galeria/**").authenticated();
+//                    auth.requestMatchers("/localImages/**").authenticated();
+//                    auth.anyRequest().hasRole("ADMIN");
+//                    auth.requestMatchers("/").permitAll();
+//
+//                    auth.requestMatchers("/dashboard","/localImages/**", "/galeria").authenticated();
 //                    auth.anyRequest().denyAll();
 //                })
 //                .formLogin(form -> form
-//                        .loginPage("/login"))
+//                        .loginPage("/")
+//                        .loginProcessingUrl("/galeria"))
 //                .logout(logo -> {
-//                    logo.logoutUrl("/logout");
 //                    logo.invalidateHttpSession(true);
 //                    logo.deleteCookies("JSESSIONID");
+//                    logo.logoutUrl("/logout");
+//                    logo.logoutSuccessUrl("/");
 //                })
-//                        .logoutSuccessUrl("/**").permitAll())
+
+
                 .build();
     }
 
