@@ -34,10 +34,7 @@ public class ImageController {
         String[] uriSplit = uri.split("/");
         String filename = uriSplit[uriSplit.length-1];
 
-        String path = uri.substring(0,uri.length()-filename.length());
-
-
-        String localFilePath = DashBoardController.getActualConfigDirectory() ;
+        String localFilePath = DashBoardController.getActualDirectory();
         ResponseEntity<Resource> foto = serveFile(filename, localFilePath);
 
         return foto;
@@ -51,10 +48,11 @@ public class ImageController {
         Path imageLocation = Paths.get(path);
 
         if (configPath.exists()) {
+
             try {
                 Path file = imageLocation.resolve(filename);
                 Resource resource = new UrlResource(file.toUri());
-//                System.out.println("RESOURCE -> "+resource.getURI());
+
                 if (resource.exists() && resource.isReadable()) {
                     responseEntity = ResponseEntity.ok()
                             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
@@ -75,7 +73,6 @@ public class ImageController {
 
             System.out.println("Ha habido un error inesperado, no se localiza la imagen especificada.");
         }
-
         return responseEntity;
     }
 

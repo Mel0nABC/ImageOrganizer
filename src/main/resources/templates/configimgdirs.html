@@ -1,10 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Editar directorios configurado</title>
+    <style>
+        p{
+        display: inline;
+        }
+        input{
+        display: inline;
+        }
+
+    </style>
+
+
 </head>
 <body>
 
+<h1>Editar directorios configurado</h1>
+
+
+<section th:each="src : ${configDirs}">
+    <p th:text="${src}"></p> &ndash;&gt; Elegir otra ubicación: --> <input type="file" id="directoryPicker" webkitdirectory>
+</br>
+</section>
+
+<form th:action="@{/galeria}" method="get">
+    <button type="submit">Volver al inicio</button>
+</form>
+
 </body>
 </html>
+

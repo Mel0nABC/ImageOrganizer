@@ -100,7 +100,7 @@ public class DashBoardController {
         }
         return "redirect:" + getUriOk(uri);
     }
-aaaa
+
     @RequestMapping("/delImgOrDirectory")
     @ResponseBody
     public ObjectNode delImgOrDirectory(@RequestParam("path") String path) {

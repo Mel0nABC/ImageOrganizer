@@ -1,114 +1,235 @@
 <!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta Content-Type="text/html" charset="UTF-8">
     <title>DashBoard</title>
+    <link type="text/css" rel="stylesheet" href="/css/galeria.css">
+    <!-- <script type="text/javascript" src="../static/js/test.js"></script> -->
+    <!-- <script type="text/js" src="../static/js/galeriaFunctions.js"></script> -->
+    <script>
 
-    <style>
-        section{
-            display: inline-block;
-            border: 1px solid black;
-            padding: 10px;
-            margin: 20px;
-            text-align: center;
+        // DECLARAMOS UN ARRAY DE TODOS LOS BOTONES DE RENAME Y ELIMINAR
+        let btnRenameDirImg;
+        let delDirImg;
+        window.addEventListener("load", (event) => {
+            cargar();
+        });
+
+        function cargar() {
+
+
+            btnRenameDirImg = document.getElementsByName("btnRenameDirImg");
+            delDirImg = document.getElementsByName("delDirImg");
+            // PARA RENOMBRAR DIRECTRORIOS E IMÁGENES
+            let nombre;
+            let nombre2;
+            let inputNewName;
+            for (i = 0; i < btnRenameDirImg.length; i++) {
+                btnRenameDirImg[i].addEventListener("click", (event) => {
+                    let boton = event.target;
+                    inputNewName = document.getElementById("newName" + boton.value);
+
+                    if (boton.innerHTML == "Aceptar") {
+                        nombre2 = inputNewName.value;
+                        if (nombre !== nombre2) {
+                            fetch(`/rename?name=${nombre}&newName=${nombre2}`)
+                                .then(res => res.text())
+                                .then(response => {
+                                    let json = JSON.parse(response);
+                                    if (json.response = true) {
+                                        location.reload();
+                                    }
+                                })
+                        }
+                        inputNewName.type = 'hidden';
+                        boton.innerHTML = "Renombrar";
+                    } else {
+                        nombre = inputNewName.value;
+                        inputNewName.type = 'visible';
+                        boton.innerHTML = "Aceptar";
+                    }
+                });
+
+            }
+
+
+            // PARA ELIMINAR DIRECTORIOS E IMÁGENES
+            let respMsg = null;
+            for (i = 0; i < delDirImg.length; i++) {
+                document.getElementsByName("delDirImg")[i].addEventListener("click", event => {
+
+                    let confirma = confirm(`¿Confirma que desea eliminar el elemento?"${event.target.id}"
+                                            Aceptar o Cancelar.`);
+                    if (confirma) {
+                        fetch("/delImgOrDirectory?path=" + event.target.value)
+                            .then(res => res.text())
+                            .then(response => {
+                                let json = JSON.parse(response);
+                                respMsg = document.getElementById("respMsg");
+                                if (json.respuesta === "ok") {
+                                    respMsg.innerHTML =
+                                        `< div id = "cajaDel" role = "alert" style = "background: rgba(138,221,45,0.5)" >
+                                    <p id="respuestaDel">${json.delMsg}</p>
+                                    <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
+                                    </div > `;
+                                    document.getElementById(event.target.id).remove();
+                                } else {
+                                    respMsg.innerHTML =
+                                        `< div id = "cajaDel" role = "alert" style = "background: rgba(255,0,0,0.5);" >
+                                    <p id="respuestaDel">${json.delMsg}</p>
+                                    <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
+                                    </div > `;
+                                }
+                            })
+                    }
+                });
+            }
         }
 
-        section:hover{
-            opacity: 0.4;
+
+        // CERRAR CAJA AVISO ELIMINACIÓN DIRECTORIO O ARCHIVO
+        function cerrarCajaDel() {
+            respMsg.innerHTML = "";
         }
 
-        #respuestaDel{
-        display: inline-block;
+
+
+
+        // PARA OBTENER LA INFORMACIÓN DE UNA IMAGEN.
+        let infoImgBox = null;
+
+        function getInfoImg(path, urlImg) {
+
+            const options = {
+                method: 'GET'
+            };
+
+            fetch("/imgProperties?imgName=" + path, options)
+                .then(res => res.text())
+                .then(response => {
+                    if (infoImgBox !== null) {
+                        infoImgBox.remove();
+                    }
+                    document.getElementById("nav").innerHTML += "<div id='infoImgBox'></div>";
+                    infoImgBox = document.getElementById("infoImgBox");
+                    const json = JSON.parse(response);
+
+                    infoImgBox.innerHTML += `<button onclick="cerrarBox()"" id="closeImgBox"> X</button>
+                    <img src="` + urlImg + `"/>
+                    <table id='infoImgTable'>
+                    <thead><th>PROPIEDAD</th><th>VALOR</th></thead >
+                    <tbody>
+                    <tr>
+                    <td>HEIGHT</td>
+                    <td>${json.height}</td>
+                    </tr>
+                    <tr>
+                    <td>WIDTH</td>
+                    <td>${json.width}</td>
+                    </tr>
+                    <tr>
+                    <td>TRANSPARENCIA</td>
+                    <td>${json.transparencia}</td>
+                    </tr>
+                    <tr>
+                    <td>TIPO</td>
+                    <td>${json.type}</td>
+                    </tr>
+                    <tr>
+                    <td>RUTA</td>
+                    <td>${json.rutaAbsoluta}</td>
+                    </tr>
+                    </tbody>
+                    </table>`;
+                });
         }
 
-        #cajaDel{
-            text-align: center;
+        // CERRAR CAJA DE INFO DE IMAGEN
+        function cerrarBox() {
+            infoImgBox.remove();
         }
+    </script>
 
-        #cajaDel a{
-            font-size: 30px;
-        }
-
-    </style>
 </head>
-<body>
+
+<body id="body">
 
 
-<h1 th:text="${username}"></h1>
-</br>
-<h3>
-    <a th:each="path : ${uriUbicacion}"
-       th:text="${path.carpeta}"
-       th:href="${path.uriTotal}"
-       style="display: in-line;">
-
-    </a>
-</h3>
-
-</br>
 
 
-<form th:action="@{/uploadImg}" method="post" enctype="multipart/form-data">
-    <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*" multiple/>
-    <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
-    <input type="submit" value="Enviar"/>
-</form>
-</br>
-<form th:action="@{/mkDir}" method="post">
-    <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
-    CREAR DIRECTORIO:
-    <input id="dirName" name="dirName" type="text" formmethod="post"/>
-    <input type="submit" value="CREAR"/>
-</form>
+    <header>
+        <h1 th:text="${username}"></h1>
 
+    </header>
 
-</br>
-<form th:action="@{/logout}" method="get">
-    <button type="submit">Logout</button>
-</form>
+    <nav id="nav">
 
-
-</br>
-<div th:if="${#strings.toString(param.respDelImg)}">
-    <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'ok'" class="alert alert-success"
-         role="alert" style="background: rgba(138,221,45,0.5)">
-        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}"
-           style="text-align: center; font-weight: bold; margin: auto"></p>
-        <a id="respuestaDel" th:href="${uri}">X</a>
-    </div>
-    <div id="cajaDel" th:if="${#strings.toString(param.respDelImg)} == 'mal'" class="alert alert-success"
-         role="alert" style="background: rgba(255,0,0,0.5);">
-        <p id="respuestaDel" th:text="${#strings.toString(param.delMsg)}"
-           style="text-align: center; font-weight: bold; margin: auto"></p>
-        <a id="respuestaDel" th:href="${uri}">X</a>
-    </div>
-</div>
-</br>
-
-<!-- APARTADO DE CONTENIDO DE DIRECTORIOS -->
-<h3 th:if="${folderStatus} == 'empty'">La carpeta está vacia.</h3>
-<section th:each="src : ${dirList}">
-    <a th:href="${src}"><img th:name="${src}" src="/images/carpeta.png" width="300px" height="300px"></a>
-    <p th:text="${src}"></p>
-    <div th:if="${uriUbicacion.size} > 1">
-        <form th:action="@{/delImgOrDirectory}" method="post">
-            <input id="path" name="path" th:value="${src}" type="hidden"/>
-            <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
-            <button type="submit">Eliminar</button>
+        <form th:action="@{/galeria/configDirectory}" method="get">
+            GESTIONAR BIBLIOTECAS :
+            <button type="submit">AÑADIR</button>
         </form>
-    </div>
-</section>
+        <form id="logout" th:action="@{/logout}" method="get">
+            <button type="submit">Logout</button>
+        </form>
+    </nav>
 
-<section th:each="foto : ${fileList}">
-    <img th:id="${foto}" th:name="${foto}" th:src="${foto}" width="300px" height="300px">
-    <p th:text="${foto}"></p>
-    <form th:action="@{/delImgOrDirectory}" method="post">
-        <input id="path" name="path" th:value="${foto}" type="hidden"/>
-        <input id="uri" name="uri" th:value="${uri}" type="hidden"/>
-        <button type="submit">Eliminar</button>
-    </form>
-</section>
+    <section>
+        <table>
+
+        </table>
+        <div>
+            <h3 style="margin:0 0;">
+                <a th:each="path : ${uriUbicacion}" th:text="${path.carpeta}" th:href="${path.uriTotal}"
+                    style="display: inline;">
+                </a>
+            </h3>
+
+            <form th:action="@{/mkDir}" method="post">
+                <input id="uri" name="uri" th:value="${uri}" type="hidden" />
+                CREAR DIRECTORIO:
+                <input id="dirName" name="dirName" type="text" formmethod="post" />
+                <input type="submit" value="CREAR" />
+            </form>
+
+            <form th:action="@{/uploadImg}" method="post" enctype="multipart/form-data">
+                SUBIR IMÁGENES
+                <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*"
+                    multiple />
+                <input id="uri" name="uri" th:value="${uri}" type="hidden" />
+                <input type="submit" value="Enviar" />
+            </form>
+
+            <div id="respMsg"></div>
+
+            <!-- APARTADO DE CONTENIDO DE DIRECTORIOS -->
+            <h3 th:if="${folderStatus} == 'empty'">La carpeta está vacia.</h3>
+            <article th:each="src : ${dirList}" th:id="${src.name}" class="dirContainer">
+                <a th:href="${src.src}"><img th:name="${src.name}" src="/images/carpeta.png"></a>
+                <p th:id="showName+${src.name}" th:text="${src.name}"></p>
+                <div th:if="${uriUbicacion.size} > 1">
+                    <button th:id="${src.name}" name="delDirImg" th:value="${src.src}">Eliminar</button>
+                    <input th:id="newName+${src.name}" name="newName" th:value="${src.name}" type="hidden" />
+                    <button name="btnRenameDirImg" th:value="${src.name}" type="button">Renombrar</button>
+                </div>
+            </article>
+
+            <article th:each="foto : ${fileList}" th:id="${foto.name}" class="imgContainer" th:name="${foto.name}">
+                <a th:attr="onclick=|getInfoImg('${foto.name}','${foto.src}')|"><img th:id="${foto.id}"
+                        th:name="${foto.name}" th:src="${foto.src}"></a>
+                <p th:id="showName+${foto.name}" th:text="${foto.name}"></p>
+                <button th:id="${foto.name}" name="delDirImg" th:value="${foto.src}">Eliminar</button>
+                <input th:id="newName+${foto.name}" name="newName" th:value="${foto.name}" type="hidden" />
+                <button name="btnRenameDirImg" th:value="${foto.name}" type="button">Renombrar</button>
+            </article>
+
+
+    </section>
+    <footer>
+        <p>Footer blah blah blah ....</p>
+    </footer>
+
 
 </body>
+
 </html>
