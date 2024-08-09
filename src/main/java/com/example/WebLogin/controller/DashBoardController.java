@@ -97,7 +97,6 @@ public class DashBoardController {
             } else {
                 System.out.println("Directorio NO creado");
             }
-            System.out.println("TEST");
         }
         return "redirect:" + getUriOk(uri);
     }
