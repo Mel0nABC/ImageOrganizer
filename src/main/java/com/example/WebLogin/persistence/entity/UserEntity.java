@@ -3,7 +3,6 @@ package com.example.WebLogin.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 

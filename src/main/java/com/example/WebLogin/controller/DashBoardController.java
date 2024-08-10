@@ -1,18 +1,22 @@
 package com.example.WebLogin.controller;
 
+import com.example.WebLogin.filesControl.GestorArchivosCarpetas;
 import com.example.WebLogin.filesControl.ReadConfigPath;
+import com.example.WebLogin.filesControl.WriteConfigPath;
 import com.example.WebLogin.otherClasses.DirFilePathClass;
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
 import com.example.WebLogin.otherClasses.UriLinks;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Locked.Write;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -23,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.awt.Image;
 import java.io.*;
 import java.net.URLDecoder;
 
@@ -64,6 +67,7 @@ public class DashBoardController {
             @RequestParam("uri") String uri) {
         String pathToSave = actualDirectory;
         for (MultipartFile multipartFile : multipartFileList) {
+            @SuppressWarnings("null")
             String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
             File uploadDir = new File(pathToSave);
             Path uploadPath = Paths.get(uploadDir.getPath());
@@ -169,6 +173,76 @@ public class DashBoardController {
         return "configimgdirs";
     }
 
+    @RequestMapping("/editDirectory")
+    @ResponseBody
+    public ObjectNode editDirectory(@RequestParam("path") String path) {
+
+        System.out.println("PATH --> " + path);
+        File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
+        List<File> dirList = new ArrayList<>();
+        List<File> fileList = new ArrayList<>();
+
+        for (File f : pathList) {
+            if (f.isDirectory()) {
+                dirList.add(f);
+            } else {
+                fileList.add(f);
+            }
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode json = mapper.createObjectNode();
+
+        json.putPOJO("dirList", dirList);
+        json.putPOJO("fileList", fileList);
+
+        String[] pathSplit = path.split(SEPARADOR);
+        String pathResul = SEPARADOR;
+        if (pathSplit.length > 2) {
+            pathResul = "";
+            for (int i = 0; i < pathSplit.length - 1; i++) {
+                if (i != 0) {
+                    pathResul += SEPARADOR + pathSplit[i];
+                } else {
+                    pathResul += pathSplit[i];
+                }
+
+            }
+        }
+        json.putPOJO("pathFirst", pathResul);
+
+        return json;
+    }
+
+    @RequestMapping("/confirmNewPath")
+    @ResponseBody
+    public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
+
+        if (!new File(folderPath).exists()) {
+            return false;
+        }
+
+        File[] listaDirectorios = ReadConfigPath.getConfigDirList();
+
+        for (File f : listaDirectorios) {
+            if (f.getAbsolutePath().equals(folderPath)) {
+                System.out.println("EXISTE");
+                return false;
+            }
+        }
+
+        System.out.println("NO EXISTE, AÑADIMOS.EXISTE");
+        WriteConfigPath.writeConfigDirList(folderPath);
+
+        return true;
+    }
+
+    @RequestMapping("/prueba")
+    @ResponseBody
+    public void prueba() {
+        System.out.println("PROBANDO");
+    }
+
     @GetMapping("/imgProperties")
     @ResponseBody
     public ImageProperties imgProperties(@RequestParam("imgName") String imgName) {
@@ -184,7 +258,6 @@ public class DashBoardController {
         }
         return uri;
     }
-
 
     /**
      * Para preparar una ruta tipo uri para enviarla por redirect:

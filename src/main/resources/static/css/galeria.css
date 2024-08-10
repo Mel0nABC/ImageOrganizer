@@ -1,93 +1,100 @@
-header{
-    border: solid 1px black;
-    Height: 100px;
+body {
+  display: block;
+  justify-content: center;
+}
+
+header {
+  border: solid 1px black;
+  Height: 100px;
 }
 
 
-header h1{
-    top: 50%;
-    text-align: center;
+header h1 {
+  top: 50%;
+  text-align: center;
 }
 
-nav{
-    border: solid 1px black;
-    text-align: center;
+nav {
+  border: solid 1px black;
+  text-align: center;
 }
 
-nav form{
-    padding: 10px;
-    display: inline-block;
+nav form {
+  padding: 10px;
+  display: inline-block;
 }
 
 
-section{
-    border: solid 1px black;
+section {
+  border: solid 1px black;
 }
 
-section div{
- margin: 30px;
- padding 20px;
+section div {
+  margin: 30px;
+  padding 20px;
 }
 
-section article{
-    border: solid 1px black;
-    margin: 30px;
-    padding: 20px;
-    text-align:center;
-    display: inline-block;
-    width: 500px;
-    }
-
-    section article:hover{
-         opacity: 0.5;
-         background:red;
-    }
-
-
-footer{
-    top: 50%;
-    text-align: center;
-    padding 50px;
-    border: solid 1px black;
+section article {
+  border: solid 1px black;
+  margin: 30px;
+  padding: 20px;
+  text-align: center;
+  display: inline-block;
+  width: 500px;
 }
 
-#cajaDel{
-    text-align: center;
-    padding: 20px;
-    margin: 30px 25%;
-    border-radius: 20px;
+section article:hover {
+  opacity: 0.5;
+  background: red;
 }
 
-#cajaDel p{
-    text-align: center;
-    font-weight: bold;
-    margin: auto;
-    display: inline;
-    text-align:center;
+
+footer {
+  top: 50%;
+  text-align: center;
+  padding 50px;
+  border: solid 1px black;
 }
 
-.form{
-    display: inline;
-    margin: 10px;
+#cajaDel {
+  text-align: center;
+  padding: 20px;
+  margin: 30px 25%;
+  border-radius: 20px;
 }
 
-.dirContainer{
+#cajaDel p {
+  text-align: center;
+  font-weight: bold;
+  margin: auto;
+  display: inline;
+  text-align: center;
+}
+
+.form {
+  display: inline;
+  margin: 10px;
+}
+
+.dirContainer {
   width: 350px;
   height: 350px;
-  padding:20px;
-}
-.imgContainer{
-
-    width: 350px;
-    height: 350px;
-    padding:20px;
+  padding: 20px;
 }
 
-img{
-    /* object-fit: cover; */
-    width:75%;
-    height:75%;
-  }
+.imgContainer {
+
+  width: 350px;
+  height: 350px;
+  padding: 20px;
+}
+
+img {
+  /* object-fit: cover; */
+  width: 75%;
+  height: 75%;
+}
+
 /* 
   #infoImgBox{
 
@@ -101,33 +108,38 @@ img{
 
   } */
 
-  #infoImgBox{
-    height: 50%;
-    /* width: 50%; */
-    z-index: 4;
-    display: block;
-    justify-content: center;
-    align-content: center;
-    background-color: #e0e0e0;
-    position: absolute;
-    padding: 5%;
-    margin:100px 300px;
-    border-radius: 30px;
-    border: solid 1px black;
-  }
+#infoImgBox {
+  height: 50%;
+  /* width: 50%; */
+  z-index: 4;
+  display: block;
+  justify-content: center;
+  align-content: center;
+  background-color: #e0e0e0;
+  position: absolute;
+  padding: 5%;
+  margin: 100px 300px;
+  border-radius: 30px;
+  border: solid 1px black;
+}
 
-  #infoImgBox button{
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 25px;
-    font-weight: 500;
-  }
+#infoImgBox button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 25px;
+  font-weight: 500;
+}
 
-  #infoImgBox img{
-    margin: 20px;
-  }
+#infoImgBox img {
+  margin: 20px;
+}
 
-  #infoImgTable¡,thead,th,tbody,tr,td{
-    border: solid 1px;
-  }
+#infoImgTable¡,
+thead,
+th,
+tbody,
+tr,
+td {
+  border: solid 1px;
+}

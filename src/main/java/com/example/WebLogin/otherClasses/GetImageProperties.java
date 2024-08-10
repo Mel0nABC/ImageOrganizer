@@ -5,14 +5,11 @@ import java.io.IOException;
 
 import javax.imageio.*;
 
-import org.w3c.dom.css.Rect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SequenceWriter;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 
 public class GetImageProperties {
 

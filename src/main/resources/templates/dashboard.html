@@ -69,14 +69,14 @@
                                 respMsg = document.getElementById("respMsg");
                                 if (json.respuesta === "ok") {
                                     respMsg.innerHTML =
-                                        `< div id = "cajaDel" role = "alert" style = "background: rgba(138,221,45,0.5)" >
+                                        `<div id="cajaDel" role="alert" style="background: rgba(138,221,45,0.5)">
                                     <p id="respuestaDel">${json.delMsg}</p>
                                     <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
                                     </div > `;
                                     document.getElementById(event.target.id).remove();
                                 } else {
                                     respMsg.innerHTML =
-                                        `< div id = "cajaDel" role = "alert" style = "background: rgba(255,0,0,0.5);" >
+                                        `<div id="cajaDel" role="alert" style="background: rgba(255,0,0,0.5);" >
                                     <p id="respuestaDel">${json.delMsg}</p>
                                     <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
                                     </div > `;
@@ -167,7 +167,7 @@
 
         <form th:action="@{/galeria/configDirectory}" method="get">
             GESTIONAR BIBLIOTECAS :
-            <button type="submit">AÑADIR</button>
+            <button type="submit">GESTIONAR</button>
         </form>
         <form id="logout" th:action="@{/logout}" method="get">
             <button type="submit">Logout</button>
@@ -201,29 +201,29 @@
             </form>
 
             <div id="respMsg"></div>
+            <div class="center">
+                <!-- APARTADO DE CONTENIDO DE DIRECTORIOS -->
+                <h3 th:if="${folderStatus} == 'empty'">La carpeta está vacia.</h3>
+                <article th:each="src : ${dirList}" th:id="${src.name}" class="dirContainer">
+                    <a th:href="${src.src}"><img th:name="${src.name}" src="/images/carpeta.png"></a>
+                    <p th:id="showName+${src.name}" th:text="${src.name}"></p>
+                    <div th:if="${uriUbicacion.size} > 1">
+                        <button th:id="${src.name}" name="delDirImg" th:value="${src.src}">Eliminar</button>
+                        <input th:id="newName+${src.name}" name="newName" th:value="${src.name}" type="hidden" />
+                        <button name="btnRenameDirImg" th:value="${src.name}" type="button">Renombrar</button>
+                    </div>
+                </article>
 
-            <!-- APARTADO DE CONTENIDO DE DIRECTORIOS -->
-            <h3 th:if="${folderStatus} == 'empty'">La carpeta está vacia.</h3>
-            <article th:each="src : ${dirList}" th:id="${src.name}" class="dirContainer">
-                <a th:href="${src.src}"><img th:name="${src.name}" src="/images/carpeta.png"></a>
-                <p th:id="showName+${src.name}" th:text="${src.name}"></p>
-                <div th:if="${uriUbicacion.size} > 1">
-                    <button th:id="${src.name}" name="delDirImg" th:value="${src.src}">Eliminar</button>
-                    <input th:id="newName+${src.name}" name="newName" th:value="${src.name}" type="hidden" />
-                    <button name="btnRenameDirImg" th:value="${src.name}" type="button">Renombrar</button>
-                </div>
-            </article>
+                <article th:each="foto : ${fileList}" th:id="${foto.name}" class="imgContainer" th:name="${foto.name}">
+                    <a th:attr="onclick=|getInfoImg('${foto.name}','${foto.src}')|"><img th:id="${foto.id}"
+                            th:name="${foto.name}" th:src="${foto.src}"></a>
+                    <p th:id="showName+${foto.name}" th:text="${foto.name}"></p>
+                    <button th:id="${foto.name}" name="delDirImg" th:value="${foto.src}">Eliminar</button>
+                    <input th:id="newName+${foto.name}" name="newName" th:value="${foto.name}" type="hidden" />
+                    <button name="btnRenameDirImg" th:value="${foto.name}" type="button">Renombrar</button>
+                </article>
 
-            <article th:each="foto : ${fileList}" th:id="${foto.name}" class="imgContainer" th:name="${foto.name}">
-                <a th:attr="onclick=|getInfoImg('${foto.name}','${foto.src}')|"><img th:id="${foto.id}"
-                        th:name="${foto.name}" th:src="${foto.src}"></a>
-                <p th:id="showName+${foto.name}" th:text="${foto.name}"></p>
-                <button th:id="${foto.name}" name="delDirImg" th:value="${foto.src}">Eliminar</button>
-                <input th:id="newName+${foto.name}" name="newName" th:value="${foto.name}" type="hidden" />
-                <button name="btnRenameDirImg" th:value="${foto.name}" type="button">Renombrar</button>
-            </article>
-
-
+            </div>
     </section>
     <footer>
         <p>Footer blah blah blah ....</p>

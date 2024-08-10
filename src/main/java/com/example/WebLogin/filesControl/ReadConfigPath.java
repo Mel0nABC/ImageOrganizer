@@ -25,7 +25,7 @@ public class ReadConfigPath {
                         configPath = palabras[1];
                     }
                 }
-
+                scan.close();
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -35,6 +35,7 @@ public class ReadConfigPath {
         return configPath;
     }
 
+    @SuppressWarnings("null")
     public static File[] getConfigDirList() {
         File file = new File(System.getProperty("user.dir") + SEPARADOR+"src"+SEPARADOR+"main"+SEPARADOR+"resources"+SEPARADOR+"config.conf");
 
@@ -58,6 +59,7 @@ public class ReadConfigPath {
                 }
             }
         }
+        scan.close();
         File[] listDirs = new File[directoriosImagenes.size()];
         for(int i = 0; i < directoriosImagenes.size();i++){
             listDirs[i] = directoriosImagenes.get(i);
