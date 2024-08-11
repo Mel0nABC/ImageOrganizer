@@ -19,15 +19,22 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-               .httpBasic(Customizer.withDefaults())
-                // .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .formLogin(form -> form
+                .loginPage("/login").permitAll()
+                .defaultSuccessUrl("/galeria")
+                )
+                .authorizeHttpRequests(
+                        auth -> auth
+                                .requestMatchers("/images/**", "/css/**", "/js/**", "/webfonts/**").permitAll()
+                                .anyRequest().authenticated())
                 .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

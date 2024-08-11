@@ -1,5 +1,6 @@
 package com.example.WebLogin.controller;
 
+import com.example.WebLogin.filesControl.DeleteConfigPath;
 import com.example.WebLogin.filesControl.GestorArchivosCarpetas;
 import com.example.WebLogin.filesControl.ReadConfigPath;
 import com.example.WebLogin.filesControl.WriteConfigPath;
@@ -7,16 +8,13 @@ import com.example.WebLogin.otherClasses.DirFilePathClass;
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
 import com.example.WebLogin.otherClasses.UriLinks;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Locked.Write;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -42,6 +40,7 @@ public class DashBoardController {
     private String username = "";
     private String SEPARADOR = File.separator;
     private Authentication authentication;
+
     private static String actualDirectory = "";
 
     @PostMapping("/galeria/**")
@@ -49,7 +48,6 @@ public class DashBoardController {
         System.out.println("GALERIA POST MAPPING");
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
-        cargaContenido(model, request);
         return "redirect:/galeria";
     }
 
@@ -58,7 +56,6 @@ public class DashBoardController {
         System.out.println("GALERIA GET MAPPING");
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
-        cargaContenido(model, request);
         return "dashboard";
     }
 
@@ -166,18 +163,28 @@ public class DashBoardController {
         return json;
     }
 
-    @GetMapping("galeria/configDirectory")
-    public String configDirectory(Model model) {
-        File[] configDirs = ReadConfigPath.getConfigDirList();
-        model.addAttribute("configDirs", configDirs);
-        return "configimgdirs";
+    @GetMapping("/openConfigDirectory")
+    @ResponseBody
+    public ObjectNode configDirectory() {
+       
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode json = mapper.createObjectNode();
+        File[] configDirsTemp = ReadConfigPath.getConfigDirList();
+        List<File> configDirs = new ArrayList<>();
+
+        for(File f: configDirsTemp){
+            configDirs.add(f);
+        }
+
+
+        json.putPOJO("configDirs", configDirs);
+        return json;
     }
 
     @RequestMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
 
-        System.out.println("PATH --> " + path);
         File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
         List<File> dirList = new ArrayList<>();
         List<File> fileList = new ArrayList<>();
@@ -237,6 +244,31 @@ public class DashBoardController {
         return true;
     }
 
+    @RequestMapping("/delDirectory")
+    @ResponseBody
+    public Boolean delDirectory(@RequestParam("path") String path) {
+        File[] pathList = ReadConfigPath.getConfigDirList();
+
+        if (!DeleteConfigPath.delConfigDirList()) {
+            return false;
+        }
+
+        int originalSize = pathList.length;
+        int countSize = 0;
+        for (File f : pathList) {
+            if (!f.getAbsolutePath().equals(path)) {
+                WriteConfigPath.writeConfigDirList(f.getAbsolutePath());
+                countSize++;
+            }
+        }
+
+        if (originalSize == countSize) {
+            return false;
+        }
+
+        return true;
+    }
+
     @RequestMapping("/prueba")
     @ResponseBody
     public void prueba() {
@@ -283,13 +315,19 @@ public class DashBoardController {
      * @param model
      * @param request
      */
-    public void cargaContenido(Model model, HttpServletRequest request) {
-
+    @RequestMapping("/cargaContenido")
+    @ResponseBody
+    public ObjectNode cargaContenido(@RequestParam("uri") String uri, HttpServletRequest request, Model model) {
+        authentication = SecurityContextHolder.getContext().getAuthentication();
+        this.username = authentication.getName();
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode json = mapper.createObjectNode();
+        System.out.println("CARGANDO CONTENIDO");
+        System.out.println("USUARIO ---> "+username);
         /**
          * Declaramos variables necesarias para trabajar con URi y los directorios
          * configurados en config.conf.
          */
-        String uri = request.getRequestURI();
         uri = uriDecoder(uri);
         uri = devuelveUriLimpio(uri);
         File[] filesDirList;
@@ -362,16 +400,18 @@ public class DashBoardController {
                 }
             }
 
-            // Añadimos los atributos necesarios.
-            model.addAttribute("username", "Bienvenido a su tablero personal, " + this.username);
-            model.addAttribute("uri", uriDecoder(request.getRequestURI()));
-            model.addAttribute("uriUbicacion", uriUbicacion);
-            model.addAttribute("fileList", fileList);
-            model.addAttribute("dirList", dirList);
+            json.put("username", "Bienvenido a su tablero personal, " + this.username);
+            json.put("uri",uriDecoder(request.getRequestURI()));
+            json.putPOJO("uriUbicacion", uriUbicacion);
+            json.putPOJO("fileList", fileList);
+            json.putPOJO("dirList", dirList);
+
+
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
-                model.addAttribute("folderStatus", "empty");
+                json.put("folderStatus", "empty");
             }
         }
+        return json;
     }
 
     /**

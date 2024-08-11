@@ -22,6 +22,22 @@ public class WriteConfigPath {
             return false;
         }
 
+
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+                System.out.println("CREANDOOOOOOOOOOOOOOOOOOOOOO");
+                if(file.exists()){
+                    System.out.println("COMPROBADO QUE SI ESTÁ CREADO");
+                }else{
+                    System.out.println("NO ESTÁ CREADO");
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
         return true;
     }
 }

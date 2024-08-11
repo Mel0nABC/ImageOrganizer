@@ -13,33 +13,39 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.swing.JPopupMenu.Separator;
 
 @RestController
 @RequestMapping("/localImages")
 public class ImageController {
 
-
-
     @GetMapping("/**")
-    public ResponseEntity<Resource> cargarGaleria(Model model, HttpServletRequest request){
+    public ResponseEntity<Resource> cargarGaleria(Model model, HttpServletRequest request) {
 
         String url = request.getRequestURL().toString();
         String uri = url.split("/localImages")[1];
 
+        // System.out.println("URILS -> " + url);
         String[] uriSplit = uri.split("/");
-        String filename = uriSplit[uriSplit.length-1];
-
+        String filename = uriSplit[uriSplit.length - 1];
         String localFilePath = DashBoardController.getActualDirectory();
-        ResponseEntity<Resource> foto = serveFile(filename, localFilePath);
 
+        try {
+            filename = URLDecoder.decode(filename, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        ResponseEntity<Resource> foto = serveFile(filename, localFilePath);
         return foto;
     }
-
 
     public ResponseEntity<Resource> serveFile(String filename, String path) {
         path = DashBoardController.uriDecoder(path);
@@ -55,7 +61,8 @@ public class ImageController {
 
                 if (resource.exists() && resource.isReadable()) {
                     responseEntity = ResponseEntity.ok()
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                            .header(HttpHeaders.CONTENT_DISPOSITION,
+                                    "inline; filename=\"" + resource.getFilename() + "\"")
                             .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(file))
                             .body(resource);
                 } else {
@@ -68,8 +75,7 @@ public class ImageController {
                 responseEntity = ResponseEntity.status(500).build();
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
 
             System.out.println("Ha habido un error inesperado, no se localiza la imagen especificada.");
         }

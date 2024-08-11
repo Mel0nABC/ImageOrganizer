@@ -2,6 +2,7 @@ package com.example.WebLogin.filesControl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -10,10 +11,12 @@ public class ReadConfigPath {
 
 
     private static String SEPARADOR = File.separator;
+    private static File file = new File(System.getProperty("user.dir") + SEPARADOR+"src"+SEPARADOR+"main"+SEPARADOR+"resources"+SEPARADOR+"config.conf");
 //    private static String CONFIGPATH = System.getProperty("user.dir") + SEPARADOR+"src"+SEPARADOR+"main"+SEPARADOR+"resources"+SEPARADOR+"config.conf";
 
     public static String readPath(String configpath) {
-        File file = new File(configpath);
+
+          File file = new File(configpath);
         String configPath = "";
         if (file.exists()) {
             try {
@@ -37,7 +40,9 @@ public class ReadConfigPath {
 
     @SuppressWarnings("null")
     public static File[] getConfigDirList() {
-        File file = new File(System.getProperty("user.dir") + SEPARADOR+"src"+SEPARADOR+"main"+SEPARADOR+"resources"+SEPARADOR+"config.conf");
+
+        ReadConfigPath.getConfigFileExist();
+
 
         List<File> directoriosImagenes = new ArrayList<>();
         Scanner scan = null;
@@ -66,5 +71,24 @@ public class ReadConfigPath {
         }
         return listDirs;
     }
+
+    public static Boolean getConfigFileExist(){
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        if(!file.exists()){
+            return false;
+        }
+
+        return true;
+    }
+
+
 
 }

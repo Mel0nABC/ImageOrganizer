@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     @GetMapping("/")
+    public String dashboard() {
+        return "dashboard";
+    }
+    
+    @GetMapping("/login")
     public String login() {
-        System.out.println("SIGNIN");
         return "login";
     }
 
-    @GetMapping("/logout")
-    public String logOff() throws Exception {
-        System.out.println("LOGOUT");
-        return "redirect:/";
-    }
+
 }
