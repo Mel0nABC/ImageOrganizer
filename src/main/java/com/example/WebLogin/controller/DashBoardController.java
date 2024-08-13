@@ -14,6 +14,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,13 +63,13 @@ public class DashBoardController {
     }
 
     @PostMapping("/uploadImg")
-    public String uploadImg(@RequestParam("imgFile") MultipartFile[] multipartFileList,
-            @RequestParam("uri") String uri) {
-        String pathToSave = actualDirectory;
+    @ResponseBody
+    public String uploadImg(@RequestParam("inputImgList") MultipartFile[] multipartFileList) {
+
         for (MultipartFile multipartFile : multipartFileList) {
             @SuppressWarnings("null")
             String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-            File uploadDir = new File(pathToSave);
+            File uploadDir = new File(actualDirectory);
             Path uploadPath = Paths.get(uploadDir.getPath());
             if (!Files.exists(uploadPath)) {
                 try {
@@ -83,23 +86,28 @@ public class DashBoardController {
                 ioe.printStackTrace();
             }
         }
-
-        return "redirect:" + getUriOk(uri);
+        return "ok";
     }
 
-    @PostMapping("/mkDir")
-    public String mkDir(@RequestParam("dirName") String dirName, @RequestParam("uri") String uri) {
+    @RequestMapping("/mkDir")
+    @ResponseBody
+    public ObjectNode mkDir(@RequestParam("dirName") String dirName) {
         File dir = new File(actualDirectory + SEPARADOR + dirName);
-
+        String respuesta = "";
         if (!dir.exists()) {
             dir.mkdir();
             if (dir.exists()) {
-                System.out.println("Directorio creado");
-            } else {
-                System.out.println("Directorio NO creado");
+                respuesta = "Carpeta creada satisfactoriamente.";
             }
+        } else {
+            respuesta = "La carpeta ya existe.";
         }
-        return "redirect:" + getUriOk(uri);
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode json = mapper.createObjectNode();
+        json.put("respuesta", respuesta);
+
+        return json;
     }
 
     @RequestMapping("/delImgOrDirectory")
@@ -166,16 +174,15 @@ public class DashBoardController {
     @GetMapping("/openConfigDirectory")
     @ResponseBody
     public ObjectNode configDirectory() {
-       
+
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode json = mapper.createObjectNode();
         File[] configDirsTemp = ReadConfigPath.getConfigDirList();
         List<File> configDirs = new ArrayList<>();
 
-        for(File f: configDirsTemp){
+        for (File f : configDirsTemp) {
             configDirs.add(f);
         }
-
 
         json.putPOJO("configDirs", configDirs);
         return json;
@@ -184,16 +191,19 @@ public class DashBoardController {
     @RequestMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
-
+System.out.println("PRUEBA");
         File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
-        List<File> dirList = new ArrayList<>();
-        List<File> fileList = new ArrayList<>();
+        Map<String, String> dirList = new HashMap<>();
+        Map<String, String> fileList = new HashMap<>();
+        Map<String, String> test = new HashMap<>();
+
+
 
         for (File f : pathList) {
             if (f.isDirectory()) {
-                dirList.add(f);
+                dirList.put(f.getName(), f.getAbsolutePath());
             } else {
-                fileList.add(f);
+                fileList.put(f.getName(), f.getAbsolutePath());
             }
         }
 
@@ -323,7 +333,7 @@ public class DashBoardController {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode json = mapper.createObjectNode();
         System.out.println("CARGANDO CONTENIDO");
-        System.out.println("USUARIO ---> "+username);
+        System.out.println("USUARIO ---> " + username);
         /**
          * Declaramos variables necesarias para trabajar con URi y los directorios
          * configurados en config.conf.
@@ -401,11 +411,10 @@ public class DashBoardController {
             }
 
             json.put("username", "Bienvenido a su tablero personal, " + this.username);
-            json.put("uri",uriDecoder(request.getRequestURI()));
+            json.put("uri", uriDecoder(request.getRequestURI()));
             json.putPOJO("uriUbicacion", uriUbicacion);
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
-
 
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");
