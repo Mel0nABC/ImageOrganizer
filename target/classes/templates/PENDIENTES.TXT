@@ -2,7 +2,8 @@
       Si no se añade ninguno, que se quede en la actual ubicación.
       Si se borra una carpeta y es en la que estaba, que vaya a /galeria.
 
-
+- Buscar cómo hacer resize a las imágenes para enviar al front y que ocupen menos.
+-
 
 
 

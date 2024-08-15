@@ -191,13 +191,10 @@ public class DashBoardController {
     @RequestMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
-System.out.println("PRUEBA");
+        System.out.println("PRUEBA");
         File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
         Map<String, String> dirList = new HashMap<>();
         Map<String, String> fileList = new HashMap<>();
-        Map<String, String> test = new HashMap<>();
-
-
 
         for (File f : pathList) {
             if (f.isDirectory()) {
@@ -207,11 +204,16 @@ System.out.println("PRUEBA");
             }
         }
 
+        TreeMap<String,String> dirListSorted = new TreeMap<>();
+        dirListSorted.putAll(dirList);
+        TreeMap<String,String> fileListSorted = new TreeMap<>();
+        fileListSorted.putAll(fileList);
+
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode json = mapper.createObjectNode();
 
-        json.putPOJO("dirList", dirList);
-        json.putPOJO("fileList", fileList);
+        json.putPOJO("dirList", dirListSorted);
+        json.putPOJO("fileList", fileListSorted);
 
         String[] pathSplit = path.split(SEPARADOR);
         String pathResul = SEPARADOR;
@@ -277,12 +279,6 @@ System.out.println("PRUEBA");
         }
 
         return true;
-    }
-
-    @RequestMapping("/prueba")
-    @ResponseBody
-    public void prueba() {
-        System.out.println("PROBANDO");
     }
 
     @GetMapping("/imgProperties")

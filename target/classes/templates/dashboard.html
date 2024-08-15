@@ -100,23 +100,30 @@
 
         function closeEditPathFolders() {
             document.getElementById("editPathFolders-container").remove();
+            if (pathStatus) location.href = "/galeria";
         }
 
         function deletePath(event) {
-            let path = event.target.value;
-            fetch(`/delDirectory?path=${path}`)
-                .then(res => res.text())
-                .then(response => {
 
-                    if (response === "true") {
-                        document.getElementById(path).remove();
-                    }
-                })
+            if (confirm("¿Esta seguro de eliminar el directorio seleccionada?")) {
+                let path = event.target.value;
+                fetch(`/delDirectory?path=${path}`)
+                    .then(res => res.text())
+                    .then(response => {
+
+                        if (response === "true") {
+                            document.getElementById(path).remove();
+                            pathStatus = true;
+                        }
+                    })
+            }
         }
 
         function closeNewPathDiv() {
             document.getElementById("newPathDiv").remove();
         }
+
+        let pathStatus = false;
 
         function confirmNewPath() {
 
@@ -127,6 +134,7 @@
                     if (response === "true") {
                         alert("Directorio añadido satisfactoriamente.")
                         editPathFolders();
+                        pathStatus = true;
                     } else {
                         alert("No se pudo añadir el directorio seleccionado.")
                     }
@@ -160,19 +168,29 @@
         // INICIO MENÚ DEL BOTÓN  -- NUEVA CARPETA -- ####################################
 
         function menuMkDir() {
-            const node = document.createElement("div");
-            node.setAttribute("id", "mkdir-container");
-            node.setAttribute("class", "ventana-emergente");
-            document.getElementById("nav").appendChild(node);
 
-            mkdircontainer = document.getElementById("mkdir-container");
-            mkdircontainer.innerHTML = `<div id="mkdirsection" class="contenido-emergente">
+            if (window.location.pathname === "/galeria") {
+                alert("En esta ubicación, no puede crear carpetas.")
+            } else {
+                const node = document.createElement("div");
+                node.setAttribute("id", "mkdir-container");
+                node.setAttribute("class", "ventana-emergente");
+                document.getElementById("nav").appendChild(node);
+
+                mkdircontainer = document.getElementById("mkdir-container");
+                mkdircontainer.innerHTML = `<div id="mkdirsection" class="contenido-emergente">
                                 <h1>CREAR NUEVA CARPETA</h1>
                                 <input id="dirNameNewPath" type="text" />
                                 <button onclick="acceptNewFolder()">ACEPTAR</button>
                                 <button onclick="cancelNewFolder()">CERRAR</button>
                                 <p id="msgNewFolder"></p>
                             </div>`
+                            document.getElementById("dirNameNewPath").focus();
+            }
+
+
+
+
         }
 
         function acceptNewFolder() {
@@ -284,7 +302,7 @@
                         respMsg = document.getElementById("respMsg");
                         if (json.respuesta === "ok") {
                             respMsg.innerHTML =
-                                `<div id="cajaDel" role="alert" style="background: rgba(138,221,45,0.5)">
+                                `<div id="cajaDel" role="alert" style="background: rgb(68, 236, 54)">
                 <p id="respuestaDel">${json.delMsg}</p>
                 <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
                 </div > `;
@@ -386,13 +404,16 @@
         let imgFilesList = null;
         function menuNewImages(event) {
 
-            const node = document.createElement("div");
-            node.setAttribute("id", "newImage-container");
-            node.setAttribute("class", "ventana-emergente");
-            document.getElementById("nav").appendChild(node);
+            if (window.location.pathname === "/galeria") {
+                alert("En esta ubicación, no puede subir imágenes.")
+            } else {
+                const node = document.createElement("div");
+                node.setAttribute("id", "newImage-container");
+                node.setAttribute("class", "ventana-emergente");
+                document.getElementById("nav").appendChild(node);
 
-            mkdircontainer = document.getElementById("newImage-container");
-            mkdircontainer.innerHTML = `<div id="newImgSection" class="contenido-emergente">
+                mkdircontainer = document.getElementById("newImage-container");
+                mkdircontainer.innerHTML = `<div id="newImgSection" class="contenido-emergente">
                     <h1>SUBIR IMÁGENES</h1>
                     <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*"multiple />
                     <button onclick="acceptNewImg()">ACEPTAR</button>
@@ -400,10 +421,11 @@
                     <div id="listaImagenes"></div>
                 </div>`
 
-            document.getElementById("imgFile").addEventListener("change", event => {
-                imgFilesList = event.target.files;
-                showListImgSelected();
-            });
+                document.getElementById("imgFile").addEventListener("change", event => {
+                    imgFilesList = event.target.files;
+                    showListImgSelected();
+                });
+            }
         }
 
 
