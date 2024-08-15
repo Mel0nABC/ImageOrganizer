@@ -6,7 +6,6 @@ package com.example.WebLogin.filesControl;
 
 import java.io.File;
 
-
 /**
  * @author mel0n
  */
@@ -22,6 +21,5 @@ public class GestorArchivosCarpetas {
         }
         return fileListDir;
     }
-
 
 }

@@ -8,6 +8,9 @@ import com.example.WebLogin.otherClasses.DirFilePathClass;
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
 import com.example.WebLogin.otherClasses.UriLinks;
+import com.example.WebLogin.persistence.entity.PathEntity;
+import com.example.WebLogin.persistence.entity.UserEntity;
+import com.example.WebLogin.service.UserDetailServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -37,18 +41,23 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+import javax.imageio.spi.ImageReaderWriterSpi;
+
 @Controller
 public class DashBoardController {
 
     private String username = "";
     private String SEPARADOR = File.separator;
     private Authentication authentication;
-
+    private UserDetailServiceImpl userDetailsService;
     private static String actualDirectory = "";
+
+    public DashBoardController(UserDetailServiceImpl users) {
+        this.userDetailsService = users;
+    }
 
     @PostMapping("/galeria/**")
     public String cargarGaleriaPostquestParam(Model model, HttpServletRequest request) {
-        System.out.println("GALERIA POST MAPPING");
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
         return "redirect:/galeria";
@@ -56,10 +65,18 @@ public class DashBoardController {
 
     @GetMapping("/galeria/**")
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
-        System.out.println("GALERIA GET MAPPING");
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
         return "dashboard";
+    }
+
+    public File[] getPathList(String username) {
+        List<PathEntity> listPath = userDetailsService.getPathList(username);
+        File[] filesDirList = new File[listPath.size()];
+        for (int i = 0; i < listPath.size(); i++) {
+            filesDirList[i] = new File(listPath.get(i).getPath_dir());
+        }
+        return filesDirList;
     }
 
     @PostMapping("/uploadImg")
@@ -177,7 +194,7 @@ public class DashBoardController {
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode json = mapper.createObjectNode();
-        File[] configDirsTemp = ReadConfigPath.getConfigDirList();
+        File[] configDirsTemp = getPathList(username);
         List<File> configDirs = new ArrayList<>();
 
         for (File f : configDirsTemp) {
@@ -191,7 +208,6 @@ public class DashBoardController {
     @RequestMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
-        System.out.println("PRUEBA");
         File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
         Map<String, String> dirList = new HashMap<>();
         Map<String, String> fileList = new HashMap<>();
@@ -204,9 +220,9 @@ public class DashBoardController {
             }
         }
 
-        TreeMap<String,String> dirListSorted = new TreeMap<>();
+        TreeMap<String, String> dirListSorted = new TreeMap<>();
         dirListSorted.putAll(dirList);
-        TreeMap<String,String> fileListSorted = new TreeMap<>();
+        TreeMap<String, String> fileListSorted = new TreeMap<>();
         fileListSorted.putAll(fileList);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -241,17 +257,29 @@ public class DashBoardController {
             return false;
         }
 
-        File[] listaDirectorios = ReadConfigPath.getConfigDirList();
+        File[] listaDirectorios = getPathList(username);
+        List<PathEntity> pathList = new ArrayList<>();
+        PathEntity newPath;
 
         for (File f : listaDirectorios) {
             if (f.getAbsolutePath().equals(folderPath)) {
-                System.out.println("EXISTE");
                 return false;
             }
+            newPath = new PathEntity();
+            newPath.setPath_dir(f.getAbsolutePath());
+            pathList.add(newPath);
         }
 
-        System.out.println("NO EXISTE, AÑADIMOS.EXISTE");
-        WriteConfigPath.writeConfigDirList(folderPath);
+        newPath = new PathEntity();
+        newPath.setPath_dir(folderPath);
+        pathList.add(newPath);
+
+        UserEntity user = userDetailsService.getUserByUsername(username);
+        user.setPatchList(pathList);
+
+        if (!userDetailsService.setUSerEntity(user)) {
+            return false;
+        }
 
         return true;
     }
@@ -259,25 +287,21 @@ public class DashBoardController {
     @RequestMapping("/delDirectory")
     @ResponseBody
     public Boolean delDirectory(@RequestParam("path") String path) {
-        File[] pathList = ReadConfigPath.getConfigDirList();
-
-        if (!DeleteConfigPath.delConfigDirList()) {
-            return false;
-        }
-
-        int originalSize = pathList.length;
-        int countSize = 0;
+        File[] pathList = getPathList(username);
+        List<PathEntity> resultPathList = new ArrayList<>();
         for (File f : pathList) {
             if (!f.getAbsolutePath().equals(path)) {
-                WriteConfigPath.writeConfigDirList(f.getAbsolutePath());
-                countSize++;
+                PathEntity newPath = new PathEntity();
+                newPath.setPath_dir(f.getAbsolutePath());
+                resultPathList.add(newPath);
             }
         }
 
-        if (originalSize == countSize) {
+        UserEntity user = userDetailsService.getUserByUsername(username);
+        user.setPatchList(resultPathList);
+        if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
-
         return true;
     }
 
@@ -328,23 +352,20 @@ public class DashBoardController {
         this.username = authentication.getName();
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode json = mapper.createObjectNode();
-        System.out.println("CARGANDO CONTENIDO");
-        System.out.println("USUARIO ---> " + username);
         /**
          * Declaramos variables necesarias para trabajar con URi y los directorios
          * configurados en config.conf.
          */
         uri = uriDecoder(uri);
         uri = devuelveUriLimpio(uri);
-        File[] filesDirList;
-        filesDirList = ReadConfigPath.getConfigDirList();
+        File[] filesDirList = getPathList(username);
         String localStorageDir = "";
 
         // Zona pra cuando ya no estamos en la raiz de un directorio configurado.
         if (!uri.equals("") && filesDirList.length > 0) {
 
             // Recorremos todos los directorios configurados. Obtenemos una lista de los
-            // existentes con getConfigDirList()
+            // existentes con getPathList()
             for (File f : filesDirList) {
 
                 // Con el fin de evitar un try-catch, se comprueba tamaños para hacer substring
@@ -382,8 +403,25 @@ public class DashBoardController {
 
             for (File f : filesDirList) {
                 if (f.isFile()) {
-                    fileList.add(
-                            new DirFilePathClass(f.getName(), f.getName(), "/localImages" + uri + "/" + f.getName()));
+
+                    Path path = new File(f.getAbsolutePath()).toPath();
+                    try {
+
+                        String mimeType = "";
+                        try{
+                            mimeType = Files.probeContentType(path).split("/")[0];
+                        }catch(NullPointerException e){
+                        }
+                        
+                        if (mimeType.equals("image") && mimeType != null) {
+                            fileList.add(new DirFilePathClass(f.getName(), f.getName(),"/localImages" + uri + "/" + f.getName()));
+                        }
+
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+
                 } else {
                     dirList.add(new DirFilePathClass(f.getName(), f.getName(), "/galeria" + uri + "/" + f.getName()));
                 }

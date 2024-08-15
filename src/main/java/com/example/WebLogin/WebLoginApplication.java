@@ -1,5 +1,6 @@
 package com.example.WebLogin;
 
+import java.lang.foreign.MemoryLayout.PathElement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import com.example.WebLogin.persistence.entity.PathEntity;
 import com.example.WebLogin.persistence.entity.PermissionEntity;
 import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.RoleEnum;
@@ -28,29 +30,27 @@ public class WebLoginApplication {
         SpringApplication.run(WebLoginApplication.class, args);
     }
 
+    @Autowired
+    Environment env;
 
-
-@Autowired 
-Environment env;
-
-@Bean
-public DataSource dataSource() {
-    System.out.println("CREAMOS BASE DE DATOS");
-    final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-    dataSource.setDriverClassName(env.getProperty("driverClassName"));
-    dataSource.setUrl(env.getProperty("url"));
-    dataSource.setUsername(env.getProperty("username"));
-    dataSource.setPassword(env.getProperty("password"));
-    System.out.println("SCHEMAA -----------------------> "+dataSource.getSchema());
-    return dataSource;
-}
-
+    @Bean
+    public DataSource dataSource() {
+        System.out.println("CREAMOS BASE DE DATOS");
+        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(env.getProperty("driverClassName"));
+        dataSource.setUrl(env.getProperty("url"));
+        dataSource.setUsername(env.getProperty("username"));
+        dataSource.setPassword(env.getProperty("password"));
+        System.out.println("SCHEMAA -----------------------> " + dataSource.getSchema());
+        return dataSource;
+    }
 
     // @Bean
     // CommandLineRunner init(UserRepository userRepository) {
-    //     System.out.println("CREAMOS USUARIOS Y ROLES");
+    //     // System.out.println("CREAMOS USUARIOS Y ROLES");
     //     return args -> {
-    //         /* Create PERMISSIONS */
+
+    //         // Create PERMISSIONS
     //         PermissionEntity createPermission = PermissionEntity.builder()
     //                 .name("CREATE")
     //                 .build();
@@ -94,8 +94,13 @@ public DataSource dataSource() {
     //                         deletePermission, refactorPermission))
     //                 .build();
 
+    //         /* CREAMOS UN PATH, DE PRUEBA */
+    //         // PathEntity rootPath = PathEntity.builder()
+    //         //         .path_dir("/media/Almacenamiento")
+    //         //         .build();
+
     //         /* CREATE USERS */
-    //         UserEntity userSantiago = UserEntity.builder()
+    //         UserEntity root = UserEntity.builder()
     //                 .username("root")
     //                 .password("$2a$10$cMY29RPYoIHMJSuwRfoD3eQxU1J5Rww4VnNOUOAEPqCBshkNfrEf6")
     //                 .isEnabled(true)
@@ -103,6 +108,7 @@ public DataSource dataSource() {
     //                 .accountNoLocked(true)
     //                 .credentialNoExpired(true)
     //                 .roles(Set.of(roleAdmin))
+    //                 // .patchList(List.of(rootPath))
     //                 .build();
 
     //         UserEntity userDaniel = UserEntity.builder()
@@ -135,8 +141,8 @@ public DataSource dataSource() {
     //                 .roles(Set.of(roleDeveloper))
     //                 .build();
 
-    //         userRepository.saveAll(List.of(userSantiago, userDaniel, userAndrea,
-    //                 userAnyi));
+    //         userRepository.saveAll(List.of(root, userAndrea, userAnyi, userDaniel));
     //     };
     // }
+
 }

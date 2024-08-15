@@ -16,4 +16,6 @@ public interface UserRepository extends CrudRepository<UserEntity, Long>  {
 
     UserEntity getUserByUsername(String username);
 
+    
+
 }

@@ -1,5 +1,6 @@
 package com.example.WebLogin.service;
 
+import com.example.WebLogin.persistence.entity.PathEntity;
 import com.example.WebLogin.persistence.entity.UserEntity;
 
 import com.example.WebLogin.persistence.repository.UserRepository;
@@ -22,6 +23,24 @@ public class UserDetailServiceImpl implements UserDetailsService {
     private UserRepository userRepository;
     private static String ROOT = "root";
 
+    /**
+     * Método exclusivamente cuando se inicia la aplicación por primera vez, se
+     * obliga a cambiar el usuario root, que es el admin.
+     * Se cambia nombre de usuario y contraseña.
+     * 
+     * @param newUsername
+     * @return
+     */
+    public Boolean setAdminNewSession(String newUsername, String newPassword) {
+        UserEntity oldUser = userRepository.findUserEntityByUsername(ROOT).get();
+        oldUser.setUsername(newUsername);
+        oldUser.setPassword(new BCryptPasswordEncoder().encode(newPassword));
+        UserEntity newUser = userRepository.save(oldUser);
+        if (newUser.getUsername().equals(ROOT)) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -55,23 +74,16 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return userRepository.getUserByUsername(username);
     }
 
-    /**
-     * Método exclusivamente cuando se inicia la aplicación por primera vez, se
-     * obliga a cambiar el usuario root, que es el admin.
-     * Se cambia nombre de usuario y contraseña.
-     * 
-     * @param newUsername
-     * @return
-     */
-    public Boolean setAdminNewSession(String newUsername, String newPassword) {
+    public List<PathEntity> getPathList(String username) {
+        UserEntity userEntity = userRepository.findUserEntityByUsername(username).get();
+        List<PathEntity> pathList = new ArrayList<>();
+        pathList = userEntity.getPatchList();
+        return pathList;
+    }
 
-        UserEntity oldUser = userRepository.findUserEntityByUsername(ROOT).get();
-        oldUser.setUsername(newUsername);
-        oldUser.setPassword(new BCryptPasswordEncoder().encode(newPassword));
-        UserEntity newUser = userRepository.save(oldUser);
-        if (newUser.getUsername().equals(ROOT)) {
-            return false;
-        }
+    public Boolean setUSerEntity(UserEntity user) {
+        userRepository.save(user);
+
         return true;
     }
 

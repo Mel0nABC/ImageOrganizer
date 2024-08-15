@@ -1,6 +1,12 @@
 package com.example.WebLogin.config;
 
 import com.example.WebLogin.service.UserDetailServiceImpl;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,9 +17,12 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -27,12 +36,14 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/galeria"))
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers(HttpMethod.GET, "/images/**", "/css/**", "/js/**", "/webfonts/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/images/**", "/css/**", "/js/**", "/webfonts/**")
+                                .permitAll()
                                 .requestMatchers("/showSetAdminUser").permitAll()
                                 .requestMatchers("/setAdminUser").permitAll()
                                 .requestMatchers("/uploadImg").permitAll()
                                 .anyRequest().authenticated())
                 .csrf(t -> t.disable())
+
                 .build();
     }
 

@@ -114,6 +114,7 @@
                         if (response === "true") {
                             document.getElementById(path).remove();
                             pathStatus = true;
+                            loadSeccionCarpetasImagenes();
                         }
                     })
             }
@@ -135,6 +136,7 @@
                         alert("Directorio añadido satisfactoriamente.")
                         editPathFolders();
                         pathStatus = true;
+                        loadSeccionCarpetasImagenes();
                     } else {
                         alert("No se pudo añadir el directorio seleccionado.")
                     }
@@ -205,6 +207,7 @@
                         msgNewFolder.innerHTML = json.respuesta
                         if (json.respuesta === "Carpeta creada satisfactoriamente.") {
                             loadSeccionCarpetasImagenes();
+                            document.getElementById("dirNameNewPath").value = "";
                         }
                     })
             } else {
@@ -499,7 +502,7 @@
         <div id="botonesNav">
             <div id="btnsAcciones">
                 <button onclick="editPathFolders()">GESTIÓN CARPETAS</button>
-                <button onclick="menuMkDir()">NUEVA CARPETA</button>
+                <button onclick="menuMkDir()">CREAR CARPETA</button>
                 <button onclick="menuNewImages()">SUBIR IMÁGENES</button>
             </div>
             <div id="btnsUsuario">

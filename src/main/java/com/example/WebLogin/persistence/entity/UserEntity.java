@@ -3,8 +3,12 @@ package com.example.WebLogin.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import io.micrometer.common.lang.Nullable;
 
 @Setter
 @Getter
@@ -38,6 +42,10 @@ public class UserEntity {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleEntity> roles = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_path", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "path_id"))
+    private List<PathEntity> patchList = new ArrayList<>();
 
     public Long getId() {
         return id;
