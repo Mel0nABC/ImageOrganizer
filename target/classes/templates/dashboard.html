@@ -170,7 +170,7 @@
                                 <h1>CREAR NUEVA CARPETA</h1>
                                 <input id="dirNameNewPath" type="text" />
                                 <button onclick="acceptNewFolder()">ACEPTAR</button>
-                                <button onclick="cancelNewFolder()">CALCELAR</button>
+                                <button onclick="cancelNewFolder()">CERRAR</button>
                                 <p id="msgNewFolder"></p>
                             </div>`
         }
@@ -430,23 +430,23 @@
         }
 
         function acceptNewImg() {
-            if (imgFilesList !== null && imgFilesList.length > 0){
-                    const inputImgList = document.getElementById("imgFile")
-                    const formData = new FormData();
+            if (imgFilesList !== null && imgFilesList.length > 0) {
+                const inputImgList = document.getElementById("imgFile")
+                const formData = new FormData();
 
-                    for (i = 0; i < imgFilesList.length; i++) {
-                        formData.append("inputImgList", imgFilesList[i]);
-                    }
+                for (i = 0; i < imgFilesList.length; i++) {
+                    formData.append("inputImgList", imgFilesList[i]);
+                }
 
-                    fetch('/uploadImg', {
-                        method: 'POST',
-                        body: formData
+                fetch('/uploadImg', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.text())
+                    .then(response => {
+                        loadSeccionCarpetasImagenes();
+                        cancelNewImg();
                     })
-                        .then(res => res.text())
-                        .then(response => {
-                            loadSeccionCarpetasImagenes();
-                            cancelNewImg();
-                        })
 
             } else {
                 alert("Debe añadir algún archivo antes de aceptar.")

@@ -1,15 +1,19 @@
 package com.example.WebLogin.persistence.repository;
 
+import java.util.Optional;
 
-import com.example.WebLogin.persistence.entity.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.example.WebLogin.persistence.entity.UserEntity;
 
 @Repository
-public interface UserRepository extends CrudRepository<UserEntity, Long> {
+public interface UserRepository extends CrudRepository<UserEntity, Long>  {
 
     Optional<UserEntity> findUserEntityByUsername(String username);
+
+    UserEntity findUserEntityById(int id);
+
+    UserEntity getUserByUsername(String username);
 
 }

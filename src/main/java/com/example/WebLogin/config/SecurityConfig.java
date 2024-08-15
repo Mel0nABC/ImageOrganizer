@@ -23,15 +23,16 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .formLogin(form -> form
-                .loginPage("/login").permitAll()
-                .defaultSuccessUrl("/galeria")
-                )
+                        .loginPage("/login").permitAll()
+                        .defaultSuccessUrl("/galeria"))
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers(HttpMethod.GET,"/images/**", "/css/**", "/js/**", "/webfonts/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/images/**", "/css/**", "/js/**", "/webfonts/**").permitAll()
+                                .requestMatchers("/showSetAdminUser").permitAll()
+                                .requestMatchers("/setAdminUser").permitAll()
                                 .requestMatchers("/uploadImg").permitAll()
                                 .anyRequest().authenticated())
-                                .csrf(t -> t.disable())
+                .csrf(t -> t.disable())
                 .build();
     }
 

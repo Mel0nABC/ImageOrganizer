@@ -14,9 +14,10 @@
 </head>
 <body>
 <div class="container">
-
+    <p th:text="${param.error}"></p>
     <div class="d-flex justify-content-center h-100">
         <div class="card">
+
             <div th:if="${param.error}" class="alert alert-danger" role="alert" style="background: RGBA(253, 73, 73, 0.72);">
                 <p style="text-align: center; font-weight: bold; margin: aut">USUARIO INCORRECTO</p>
             </div>

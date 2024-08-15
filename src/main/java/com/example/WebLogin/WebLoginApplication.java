@@ -1,27 +1,45 @@
 package com.example.WebLogin;
 
 
-import java.util.List;
-import java.util.Set;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.example.WebLogin.persistence.entity.PermissionEntity;
-import com.example.WebLogin.persistence.entity.RoleEntity;
-import com.example.WebLogin.persistence.entity.RoleEnum;
-import com.example.WebLogin.persistence.entity.UserEntity;
-import com.example.WebLogin.persistence.repository.UserRepository;
+
+
 
 
 @SpringBootApplication
 public class WebLoginApplication {
 
+
+
     public static void main(String[] args) {
+          String url = "jdbc:sqlite:securitydb.db";
+
+        try (var conn = DriverManager.getConnection(url)) {
+            if (conn != null) {
+                var meta = conn.getMetaData();
+                System.out.println("The driver name is " + meta.getDriverName());
+                System.out.println("A new database has been created.");
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         SpringApplication.run(WebLoginApplication.class, args);
     }
+
+    @Bean
+    boolean init(){
+        System.out.println("TEST ------------------------------- ");
+        return true;
+    }
+
+
 
 
 //    @Bean
