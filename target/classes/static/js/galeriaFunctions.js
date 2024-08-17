@@ -227,7 +227,6 @@ function loadSeccionCarpetasImagenes() {
             if (verifyEmptyFolder === 'empty') {
                 emptyFolder = `<h3>La carpeta está vacia.</h3>`;
             } else {
-
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
                     dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
@@ -577,17 +576,14 @@ function userManagement() {
                         credentialNoExpired: tr.querySelector("#credentialNoExpired").value,
                         roleEnum: tr.querySelector("#roleEnum").value
                     })
-                    console.log(formData)
                     let options = {
                         method: 'POST',
                         body: formData
                     };
-                    console.log(formData)
 
                     fetch(`/editUser`, options)
                         .then(res => res.text()
                             .then(response => {
-                                console.log("HOLA DE VUELTA")
                                 userManagement();
                             }))
                 })

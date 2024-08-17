@@ -250,7 +250,6 @@ public class DashBoardController {
     @RequestMapping("/confirmNewPath")
     @ResponseBody
     public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
-
         if (!new File(folderPath).exists()) {
             return false;
         }
@@ -278,7 +277,6 @@ public class DashBoardController {
         if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
-
         return true;
     }
 
@@ -408,7 +406,6 @@ public class DashBoardController {
                             mimeType = Files.probeContentType(path).split("/")[0];
                         } catch (NullPointerException e) {
                         }
-
                         if (mimeType.equals("image") && mimeType != null) {
                             fileList.add(new DirFilePathClass(f.getName(), f.getName(),
                                     "/localImages" + uri + "/" + f.getName()));
@@ -446,6 +443,7 @@ public class DashBoardController {
             json.putPOJO("uriUbicacion", uriUbicacion);
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
+            json.put("folderStatus", "contains");
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");
             }
@@ -488,7 +486,6 @@ public class DashBoardController {
 
             JsonNode jsonNode = mapper.readTree(json);
             String roleType = jsonNode.get("roleEnum").asText();
-            System.out.println("ROLE ENUM QUE SE ENVIA --> " + roleType);
 
             UserEntity userChanges = mapper.readValue(json, UserEntity.class);
             UserEntity actualUser = userDetailsService.findUserEntityById(userChanges.getId());
@@ -501,12 +498,10 @@ public class DashBoardController {
 
                 if (role.name().equals(roleType)) {
                     newRoleEnum = role;
-                    System.out.println("ROL ACERTADO: " + role.name());
                 }
             }
 
             for (RoleEntity rol : actualRoleEntity) {
-                System.out.println("ROLE VALUES --> " + rol.getRoleEnum().name());
                 rol.setRoleEnum(newRoleEnum);
             }
             
