@@ -27,9 +27,6 @@ public static ImageProperties getPropertiesImg(String path) {
 
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String json = ow.writeValueAsString(infoImg);
-
-            System.out.println(json);
-
             
         } catch (IOException e) {
             // TODO Auto-generated catch block

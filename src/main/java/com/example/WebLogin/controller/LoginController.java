@@ -23,7 +23,6 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login() {
-        System.out.println("LOGIN!");
         Iterable<UserEntity> userList = userDetailsService.getAllUsers();
         for (UserEntity user : userList) {
             if (user.getUsername().equals(ROOT)) {

@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.micrometer.common.lang.Nullable;
 
 @Setter
@@ -17,6 +19,7 @@ import io.micrometer.common.lang.Nullable;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEntity {
 
     @Id
@@ -110,4 +113,15 @@ public class UserEntity {
     public void setRoles(Set<RoleEntity> roles) {
         this.roles = roles;
     }
+
+    @Override
+    public String toString() {
+        return "UserEntity [id=" + id + ", username=" + username + ", password=" + password + ", isEnabled=" + isEnabled
+                + ", accountNoExpired=" + accountNoExpired + ", accountNoLocked=" + accountNoLocked
+                + ", credentialNoExpired=" + credentialNoExpired + ", roles=" + roles + ", patchList=" + patchList
+                + "]";
+    }
+
+
+    
 }

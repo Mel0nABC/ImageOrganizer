@@ -70,6 +70,11 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return userRepository.findAll();
     }
 
+
+    public UserEntity findUserEntityById(Long id) {
+        return userRepository.findUserEntityById(id);
+    }
+
     public UserEntity getUserByUsername(String username) {
         return userRepository.getUserByUsername(username);
     }
@@ -82,6 +87,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
     }
 
     public Boolean setUSerEntity(UserEntity user) {
+
         userRepository.save(user);
 
         return true;

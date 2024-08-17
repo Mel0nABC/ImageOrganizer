@@ -32,7 +32,6 @@ public class ImageController {
         String url = request.getRequestURL().toString();
         String uri = url.split("/localImages")[1];
 
-        // System.out.println("URILS -> " + url);
         String[] uriSplit = uri.split("/");
         String filename = uriSplit[uriSplit.length - 1];
         String localFilePath = DashBoardController.getActualDirectory();

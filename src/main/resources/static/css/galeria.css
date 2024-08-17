@@ -62,7 +62,7 @@ section {
 
 section div {
   margin: 30px;
-  padding 20px;
+  padding: 20px;
 }
 
 section article {
@@ -83,7 +83,7 @@ section img:hover {
 footer {
   top: 50%;
   text-align: center;
-  padding 50px;
+  padding: 50px;
   border: solid 1px black;
 }
 
@@ -319,3 +319,63 @@ li{
 .pointer{
   cursor: pointer;
 }
+
+
+.tableUSerManagement {
+  border-collapse: collapse;
+}
+
+.tableUSerManagement thead,
+tr td:first-child {
+  background: grey;
+} 
+
+.tableUSerManagement th,
+td {
+  border: 1px solid #ccc;
+  font-weight: normal;
+  font-size: 12px;
+  text-align: center;
+  width: 64px;
+  height: 20px;
+  vertical-align: middle;
+  position: relative
+}
+
+
+/* .tableUSerManagement span,
+input {
+  position: absolute;
+  inset: 0;
+  vertical-align: middle;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+
+/* .tableUSerManagement td:active {
+  border-radius: 2px;
+  outline: 2px solid #09f;
+} */
+
+/* .tableUSerManagement input{
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 100%;
+  border-radius: 2px;
+
+  &:focus {
+    opacity: 1;
+    outline: 2px solid #09f;
+  }
+} */
+/* 
+.selected {
+  background: rgb(174, 223, 255);
+}
+
+th.selected {
+  background: rgb(146, 211, 255);
+} */

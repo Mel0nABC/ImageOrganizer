@@ -1,29 +1,28 @@
 package com.example.WebLogin.controller;
 
-import com.example.WebLogin.filesControl.DeleteConfigPath;
 import com.example.WebLogin.filesControl.GestorArchivosCarpetas;
-import com.example.WebLogin.filesControl.ReadConfigPath;
-import com.example.WebLogin.filesControl.WriteConfigPath;
 import com.example.WebLogin.otherClasses.DirFilePathClass;
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
 import com.example.WebLogin.otherClasses.UriLinks;
 import com.example.WebLogin.persistence.entity.PathEntity;
+import com.example.WebLogin.persistence.entity.RoleEntity;
+import com.example.WebLogin.persistence.entity.RoleEnum;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.service.UserDetailServiceImpl;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.context.support.BeanDefinitionDsl.Role;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -40,8 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-
-import javax.imageio.spi.ImageReaderWriterSpi;
+import java.util.function.Consumer;
 
 @Controller
 public class DashBoardController {
@@ -51,6 +49,9 @@ public class DashBoardController {
     private Authentication authentication;
     private UserDetailServiceImpl userDetailsService;
     private static String actualDirectory = "";
+    private UserEntity actualUser;
+    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectNode json = mapper.createObjectNode();
 
     public DashBoardController(UserDetailServiceImpl users) {
         this.userDetailsService = users;
@@ -67,6 +68,15 @@ public class DashBoardController {
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
+        actualUser = userDetailsService.getUserByUsername(username);
+
+        // Obtenemos el rol del usuario y lo enviamos al DOM.
+        String roleType = actualUser.getRoles().stream()
+                .map(RoleEntity::getRoleEnum)
+                .findFirst()
+                .orElse(null).toString();
+
+        model.addAttribute("roleType", roleType);
         return "dashboard";
     }
 
@@ -120,8 +130,6 @@ public class DashBoardController {
             respuesta = "La carpeta ya existe.";
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
         json.put("respuesta", respuesta);
 
         return json;
@@ -154,8 +162,6 @@ public class DashBoardController {
             delMsg = "Error al intentar eliminar el elemento seleccionado.";
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
         json.put("respuesta", respuesta);
         json.put("delMsg", delMsg);
 
@@ -169,9 +175,6 @@ public class DashBoardController {
 
         File renameFolder = new File(actualDirectory + "/" + name);
         File newFile = new File(actualDirectory + "/" + newName);
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
 
         if (!renameFolder.exists() || newFile.exists()) {
             json.put("respuesta", false);
@@ -192,8 +195,6 @@ public class DashBoardController {
     @ResponseBody
     public ObjectNode configDirectory() {
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
         File[] configDirsTemp = getPathList(username);
         List<File> configDirs = new ArrayList<>();
 
@@ -224,9 +225,6 @@ public class DashBoardController {
         dirListSorted.putAll(dirList);
         TreeMap<String, String> fileListSorted = new TreeMap<>();
         fileListSorted.putAll(fileList);
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
 
         json.putPOJO("dirList", dirListSorted);
         json.putPOJO("fileList", fileListSorted);
@@ -350,8 +348,6 @@ public class DashBoardController {
     public ObjectNode cargaContenido(@RequestParam("uri") String uri, HttpServletRequest request, Model model) {
         authentication = SecurityContextHolder.getContext().getAuthentication();
         this.username = authentication.getName();
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode json = mapper.createObjectNode();
         /**
          * Declaramos variables necesarias para trabajar con URi y los directorios
          * configurados en config.conf.
@@ -408,13 +404,14 @@ public class DashBoardController {
                     try {
 
                         String mimeType = "";
-                        try{
+                        try {
                             mimeType = Files.probeContentType(path).split("/")[0];
-                        }catch(NullPointerException e){
+                        } catch (NullPointerException e) {
                         }
-                        
+
                         if (mimeType.equals("image") && mimeType != null) {
-                            fileList.add(new DirFilePathClass(f.getName(), f.getName(),"/localImages" + uri + "/" + f.getName()));
+                            fileList.add(new DirFilePathClass(f.getName(), f.getName(),
+                                    "/localImages" + uri + "/" + f.getName()));
                         }
 
                     } catch (IOException e) {
@@ -443,13 +440,12 @@ public class DashBoardController {
                     uriUbicacion.add(new UriLinks("/" + uriUbicacionTemp[i], resultado));
                 }
             }
-
+            actualUser = userDetailsService.getUserByUsername(username);
             json.put("username", "Bienvenido a su tablero personal, " + this.username);
             json.put("uri", uriDecoder(request.getRequestURI()));
             json.putPOJO("uriUbicacion", uriUbicacion);
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
-
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");
             }
@@ -476,6 +472,56 @@ public class DashBoardController {
             uri = "";
         }
         return uri;
+    }
+
+    @RequestMapping("/getAllUsersManagement")
+    @ResponseBody
+    public ObjectNode getAllUsersManagement() {
+        Iterable<UserEntity> listUsers = userDetailsService.getAllUsers();
+        return json.putPOJO("userList", listUsers);
+    }
+
+    @PostMapping("/editUser")
+    @ResponseBody
+    public ObjectNode editUser(@RequestBody String json) {
+        try {
+
+            JsonNode jsonNode = mapper.readTree(json);
+            String roleType = jsonNode.get("roleEnum").asText();
+            System.out.println("ROLE ENUM QUE SE ENVIA --> " + roleType);
+
+            UserEntity userChanges = mapper.readValue(json, UserEntity.class);
+            UserEntity actualUser = userDetailsService.findUserEntityById(userChanges.getId());
+
+            Set<RoleEntity> actualRoleEntity = actualUser.getRoles();
+
+            RoleEnum[] roleList = RoleEnum.values();
+            RoleEnum newRoleEnum = null;
+            for (RoleEnum role : roleList) {
+
+                if (role.name().equals(roleType)) {
+                    newRoleEnum = role;
+                    System.out.println("ROL ACERTADO: " + role.name());
+                }
+            }
+
+            for (RoleEntity rol : actualRoleEntity) {
+                System.out.println("ROLE VALUES --> " + rol.getRoleEnum().name());
+                rol.setRoleEnum(newRoleEnum);
+            }
+            
+            userChanges.setRoles(actualRoleEntity);
+            userChanges.setPassword(actualUser.getPassword());
+            userChanges.setPatchList(actualUser.getPatchList());
+            userDetailsService.setUSerEntity(userChanges);
+
+
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
 }
