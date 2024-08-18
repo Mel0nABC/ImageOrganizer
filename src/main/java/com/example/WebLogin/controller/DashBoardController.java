@@ -209,24 +209,19 @@ public class DashBoardController {
     @PostMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
-        System.out.println("DATA --> " + path);
         ObjectNode json = null;
         String osName = System.getProperty("os.name");
         osName = osName.substring(0, 3);
         if (path.equals("rootUnits")) {
             if (osName.equals("Win")) {
-                System.out.println("WINDOWS ROOT PATH");
                 json = getWinDir(path);
             } else {
-                System.out.println("Linux/Mac");
                 json = getUnixDir("/");
             }
         } else {
             if (osName.equals("Win")) {
-                System.out.println("WINDOWS SEGUNDO PATH --> " + path);
                 json = getWinDir(path);
             } else {
-                System.out.println("Linux/Mac");
                 json = getUnixDir(path);
             }
         }
@@ -237,25 +232,17 @@ public class DashBoardController {
     public ObjectNode getWinDir(@RequestParam("path") String path) {
         File[] pathList = null;
         Map<String, String> dirList = new HashMap<>();
-        System.out.println("DIRECTORIOS WINDOWS -->> " + path);
         if (path.equals("rootUnits")) {
             pathList = File.listRoots();
             for (File f : pathList) {
-                dirList.put(f.getAbsolutePath(), f.getAbsolutePath().substring(0, 1));
-                System.out.println(f.getAbsolutePath() + " <-> " + f.getAbsolutePath().substring(0, 1));
+                dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
             }
         } else {
-            System.out.println("UNIDAD PARA MIRAR: " + path);
-            // path = path+":\\";
             boolean unidad = false;
             for (File f : File.listRoots()) {
                 if (f.getAbsolutePath().equals(path + ":\\")) {
                     unidad = true;
                 }
-            }
-            if (unidad) {
-                path = path + ":\\";
-                System.out.println("UNIDAD ESTABLECIDA:---> " + path);
             }
 
             pathList = GestorArchivosCarpetas.getFileDirList(path);
@@ -269,29 +256,21 @@ public class DashBoardController {
         TreeMap<String, String> dirListSorted = new TreeMap<>();
         dirListSorted.putAll(dirList);
 
-        for (Map.Entry<String, String> valor : dirListSorted.entrySet()) {
-            System.out.println("ROOT PATH: " + valor.getKey() + "- " + valor.getValue());
-        }
-
         String pathResul = "";
         if (!path.equals("rootUnits")) {
-            System.out.println("TAMAÑO PATH SPLIT --> " + path);
-            System.out.println("SEPARADOS ---> " + SEPARADOR);
-            System.out.println(path.split(SEPARADOR).length);
-            String[] pathSplit = path.split(SEPARADOR);
+            path.replace("\\", "\\\\");
+            String[] pathSplit = path.split("\\\\");
             if (pathSplit.length > 1) {
                 pathResul = "";
                 for (int i = 0; i < pathSplit.length - 1; i++) {
                     if (i == 0) {
-                        pathResul += pathSplit[i];
+                        pathResul += pathSplit[i] + SEPARADOR;
                     } else {
-                        pathResul += SEPARADOR + pathSplit[i];
+                        pathResul += pathSplit[i] + SEPARADOR;
                     }
-
                 }
             }
         }
-
         json.putPOJO("dirList", dirListSorted);
         json.putPOJO("pathFirst", pathResul);
 
@@ -500,6 +479,7 @@ public class DashBoardController {
                     }
 
                 } else {
+
                     dirList.add(new DirFilePathClass(f.getName(), f.getName(), "/galeria" + uri + "/" + f.getName()));
                 }
             }
@@ -526,6 +506,11 @@ public class DashBoardController {
             json.putPOJO("uriUbicacion", uriUbicacion);
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
+
+            for (DirFilePathClass s : dirList) {
+                System.out.println("DIRECTORIOS RAICES -> " + s.getSrc());
+            }
+
             json.put("folderStatus", "contains");
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");

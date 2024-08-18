@@ -29,7 +29,7 @@ function editPathFolders() {
                                 </tr>`;
             }
             let html = `<div id="editPathFolders" class="contenido-emergente">
-                                    <h1>Editar directorios configurado</h1>
+                                    <h1>CONFIGURACIÓN DE BIBLIOTECAS</h1>
                                         <div class="menu-container">
                                             <button onclick="addNewPath()" class="boton">Agregar nueva ruta</button>
                                             <button onclick="closeEditPathFolders()" class="boton">CERRAR</button>
@@ -71,7 +71,7 @@ function addNewPath() {
             let dirList = "";
 
             for (const [key, value] of Object.entries(json.dirList)) {
-                dirList += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
+                dirList += `<li class="pointer"><button id="raiz" onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
                 console.log(key + "- " + value)
             }
             document.getElementById("newPathContainer").innerHTML = `
@@ -82,6 +82,7 @@ function addNewPath() {
                             </div>
                             <div>
                                 <input id="absolutPath" type="text" value=""/>
+                                <input id="dirRaizTrueFalse" value="false" type="text" style="visibility:hidden"/>
                             </div>
                             <div class="newPathContainer">
                                 <div class="home-directory">
@@ -135,6 +136,11 @@ function closeNewPathDiv() {
 let pathStatus = false;
 
 function confirmNewPath() {
+    
+    if(document.getElementById("dirRaizTrueFalse").value === "false"){
+        alert("No se pueden añadir directorios raiz. Debe seleccionar una subcarpeta.")
+        return;
+    }
 
     let newFolderPath = document.getElementById("absolutPath").value;
     const formData = new FormData();
@@ -158,9 +164,15 @@ function confirmNewPath() {
 }
 
 function actionDirFunc(event) {
+    
+    console.log("DATO -> "+document.getElementById("dirRaizTrueFalse").value)
+    if(event.target.id !== "raiz"){
+        document.getElementById("dirRaizTrueFalse").value="true";
+        console.log("BOton secundario")
+    }else{
+        document.getElementById("dirRaizTrueFalse").value="false";
+    }
     let path = event.target.value;
-    console.log("PATH A ENVIAR ----> "+path)
-
     const formData = new FormData();
     formData.append("path",path);
     let options = {
@@ -174,9 +186,9 @@ function actionDirFunc(event) {
             let contentDir = "";
             let contentFiles = "";
 
-            contentDir += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${json.pathFirst}">../</button></li>`
+            contentDir += `<li class="pointer"><button id="subdir" onclick="actionDirFunc(event)" class="botonList" value="${json.pathFirst}">../</button></li>`
             for (const [key, value] of Object.entries(json.dirList)) {
-                contentDir += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
+                contentDir += `<li class="pointer"><button id="subdir" onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
             }
             document.getElementById("contentPath").innerHTML = contentDir + contentFiles;
             const actionDirBtn = document.getElementsByName("actionDir");
@@ -243,6 +255,8 @@ function cancelNewFolder() {
 // INICIO ZONA CARPETAS E CARGA IMÁGENES -- ####################################
 function loadSeccionCarpetasImagenes() {
     var pathname = window.location.pathname;
+
+    console.log("PATH NAME --> "+pathname)
     fetch(`/cargaContenido?uri=${pathname}`)
         .then(res => res.text())
         .then(response => {
