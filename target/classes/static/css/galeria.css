@@ -58,20 +58,17 @@ nav {
 
 section {
   border: solid 1px black;
-}
-
-section div {
-  margin: 30px;
-  padding: 20px;
+  text-align: center;
 }
 
 section article {
   border: solid 1px black;
-  margin: 30px;
-  padding: 20px;
+  margin: 10px;
+  padding: 10px;
   text-align: center;
+  width: 300px;
   display: inline-block;
-  width: 500px;
+  justify-content: center;
 }
 
 section img:hover {
@@ -253,9 +250,10 @@ table {
     left: -50%;
     border: solid rgb(0, 0, 0) 1px;
     padding: 25px;
+    z-index: 5;
     /* margin: auto auto;
     border: solid 1px black;
-    z-index: 5;
+    
     position: absolute; */
 }
 

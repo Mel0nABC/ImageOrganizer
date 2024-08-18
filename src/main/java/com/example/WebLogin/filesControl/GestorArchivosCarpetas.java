@@ -13,7 +13,6 @@ import java.io.File;
 public class GestorArchivosCarpetas {
 
     public static File[] getFileDirList(String folder) {
-        System.out.println("LECTURA DIRECTORIO: "+folder);
 
         File path = new File(folder);
         File[] fileListDir = null;

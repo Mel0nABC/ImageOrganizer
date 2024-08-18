@@ -507,10 +507,6 @@ public class DashBoardController {
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
 
-            for (DirFilePathClass s : dirList) {
-                System.out.println("DIRECTORIOS RAICES -> " + s.getSrc());
-            }
-
             json.put("folderStatus", "contains");
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");

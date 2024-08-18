@@ -72,7 +72,6 @@ function addNewPath() {
 
             for (const [key, value] of Object.entries(json.dirList)) {
                 dirList += `<li class="pointer"><button id="raiz" onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
-                console.log(key + "- " + value)
             }
             document.getElementById("newPathContainer").innerHTML = `
                         <div id="newPathDiv" class="newPathDiv">
@@ -165,10 +164,8 @@ function confirmNewPath() {
 
 function actionDirFunc(event) {
     
-    console.log("DATO -> "+document.getElementById("dirRaizTrueFalse").value)
     if(event.target.id !== "raiz"){
         document.getElementById("dirRaizTrueFalse").value="true";
-        console.log("BOton secundario")
     }else{
         document.getElementById("dirRaizTrueFalse").value="false";
     }
@@ -256,7 +253,6 @@ function cancelNewFolder() {
 function loadSeccionCarpetasImagenes() {
     var pathname = window.location.pathname;
 
-    console.log("PATH NAME --> "+pathname)
     fetch(`/cargaContenido?uri=${pathname}`)
         .then(res => res.text())
         .then(response => {
