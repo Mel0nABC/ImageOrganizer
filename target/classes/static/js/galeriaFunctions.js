@@ -646,11 +646,22 @@ function cancelUserManagement() {
     document.getElementById("userManagement-container").remove();
 }
 
+function newUserManagement() {
+    // Abriremos una pequeña ventana emergente para añadir el usuario. 
+    // Después refrescaremos la lista entera, si se acepta, si se cancela, no haremos nada
+}
+
+
+function delUserManagement() {
+    // Eliminaremos usuario, solicitaremos confirmación
+}
+
 //FINAL MENÚ DEL BOTÓN  -- INFO USUARIO -- ####################################
 
 //INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
 function userInfo() {
+    // Para la información del usuario que usa la aplicacióon.
     console.log("userInfo")
 }
 
