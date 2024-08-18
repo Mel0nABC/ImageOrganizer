@@ -206,28 +206,110 @@ public class DashBoardController {
         return json;
     }
 
-    @RequestMapping("/editDirectory")
+    @PostMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
-        File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
-        Map<String, String> dirList = new HashMap<>();
-        Map<String, String> fileList = new HashMap<>();
-
-        for (File f : pathList) {
-            if (f.isDirectory()) {
-                dirList.put(f.getName(), f.getAbsolutePath());
+        System.out.println("DATA --> " + path);
+        ObjectNode json = null;
+        String osName = System.getProperty("os.name");
+        osName = osName.substring(0, 3);
+        if (path.equals("rootUnits")) {
+            if (osName.equals("Win")) {
+                System.out.println("WINDOWS ROOT PATH");
+                json = getWinDir(path);
             } else {
-                fileList.put(f.getName(), f.getAbsolutePath());
+                System.out.println("Linux/Mac");
+                json = getUnixDir("/");
+            }
+        } else {
+            if (osName.equals("Win")) {
+                System.out.println("WINDOWS SEGUNDO PATH --> " + path);
+                json = getWinDir(path);
+            } else {
+                System.out.println("Linux/Mac");
+                json = getUnixDir(path);
+            }
+        }
+
+        return json;
+    }
+
+    public ObjectNode getWinDir(@RequestParam("path") String path) {
+        File[] pathList = null;
+        Map<String, String> dirList = new HashMap<>();
+        System.out.println("DIRECTORIOS WINDOWS -->> " + path);
+        if (path.equals("rootUnits")) {
+            pathList = File.listRoots();
+            for (File f : pathList) {
+                dirList.put(f.getAbsolutePath(), f.getAbsolutePath().substring(0, 1));
+                System.out.println(f.getAbsolutePath() + " <-> " + f.getAbsolutePath().substring(0, 1));
+            }
+        } else {
+            System.out.println("UNIDAD PARA MIRAR: " + path);
+            // path = path+":\\";
+            boolean unidad = false;
+            for (File f : File.listRoots()) {
+                if (f.getAbsolutePath().equals(path + ":\\")) {
+                    unidad = true;
+                }
+            }
+            if (unidad) {
+                path = path + ":\\";
+                System.out.println("UNIDAD ESTABLECIDA:---> " + path);
+            }
+
+            pathList = GestorArchivosCarpetas.getFileDirList(path);
+            for (File f : pathList) {
+                if (f.isDirectory()) {
+                    dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
+                }
             }
         }
 
         TreeMap<String, String> dirListSorted = new TreeMap<>();
         dirListSorted.putAll(dirList);
-        TreeMap<String, String> fileListSorted = new TreeMap<>();
-        fileListSorted.putAll(fileList);
+
+        for (Map.Entry<String, String> valor : dirListSorted.entrySet()) {
+            System.out.println("ROOT PATH: " + valor.getKey() + "- " + valor.getValue());
+        }
+
+        String pathResul = "";
+        if (!path.equals("rootUnits")) {
+            System.out.println("TAMAÑO PATH SPLIT --> " + path);
+            System.out.println("SEPARADOS ---> " + SEPARADOR);
+            System.out.println(path.split(SEPARADOR).length);
+            String[] pathSplit = path.split(SEPARADOR);
+            if (pathSplit.length > 1) {
+                pathResul = "";
+                for (int i = 0; i < pathSplit.length - 1; i++) {
+                    if (i == 0) {
+                        pathResul += pathSplit[i];
+                    } else {
+                        pathResul += SEPARADOR + pathSplit[i];
+                    }
+
+                }
+            }
+        }
 
         json.putPOJO("dirList", dirListSorted);
-        json.putPOJO("fileList", fileListSorted);
+        json.putPOJO("pathFirst", pathResul);
+
+        return json;
+    }
+
+    public ObjectNode getUnixDir(@RequestParam("path") String path) {
+        File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
+        Map<String, String> dirList = new HashMap<>();
+
+        for (File f : pathList) {
+            if (f.isDirectory()) {
+                dirList.put("/" + f.getName(), f.getAbsolutePath());
+            }
+        }
+
+        TreeMap<String, String> dirListSorted = new TreeMap<>();
+        dirListSorted.putAll(dirList);
 
         String[] pathSplit = path.split(SEPARADOR);
         String pathResul = SEPARADOR;
@@ -242,12 +324,13 @@ public class DashBoardController {
 
             }
         }
+        json.putPOJO("dirList", dirListSorted);
         json.putPOJO("pathFirst", pathResul);
 
         return json;
     }
 
-    @RequestMapping("/confirmNewPath")
+    @PostMapping("/confirmNewPath")
     @ResponseBody
     public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
         if (!new File(folderPath).exists()) {
@@ -280,7 +363,7 @@ public class DashBoardController {
         return true;
     }
 
-    @RequestMapping("/delDirectory")
+    @PostMapping("/delDirectory")
     @ResponseBody
     public Boolean delDirectory(@RequestParam("path") String path) {
         File[] pathList = getPathList(username);
@@ -504,12 +587,11 @@ public class DashBoardController {
             for (RoleEntity rol : actualRoleEntity) {
                 rol.setRoleEnum(newRoleEnum);
             }
-            
+
             userChanges.setRoles(actualRoleEntity);
             userChanges.setPassword(actualUser.getPassword());
             userChanges.setPatchList(actualUser.getPatchList());
             userDetailsService.setUSerEntity(userChanges);
-
 
         } catch (JsonProcessingException e) {
             // TODO Auto-generated catch block

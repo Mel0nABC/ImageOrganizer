@@ -54,7 +54,17 @@ function editPathFolders() {
 
 
 function addNewPath() {
-    fetch("/editDirectory?path=/")
+
+
+    const formData = new FormData();
+    formData.append("path","rootUnits");
+
+    let options = {
+        method: "POST",
+        body: formData
+    }
+
+    fetch("/editDirectory", options)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
@@ -62,6 +72,7 @@ function addNewPath() {
 
             for (const [key, value] of Object.entries(json.dirList)) {
                 dirList += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
+                console.log(key + "- " + value)
             }
             document.getElementById("newPathContainer").innerHTML = `
                         <div id="newPathDiv" class="newPathDiv">
@@ -95,8 +106,16 @@ function closeEditPathFolders() {
 function deletePath(event) {
 
     if (confirm("¿Esta seguro de eliminar el directorio seleccionada?")) {
+
         let path = event.target.value;
-        fetch(`/delDirectory?path=${path}`)
+        const formData = new FormData();
+        formData.append("path",path)
+        let options = {
+            method: "POST",
+            body:formData
+        }        
+        
+        fetch(`/delDirectory`,options)
             .then(res => res.text())
             .then(response => {
 
@@ -118,7 +137,13 @@ let pathStatus = false;
 function confirmNewPath() {
 
     let newFolderPath = document.getElementById("absolutPath").value;
-    fetch(`/confirmNewPath?newFolderParh=${newFolderPath}`)
+    const formData = new FormData();
+    formData.append("newFolderParh",newFolderPath)
+    let options = {
+        method: "POST",
+        body:formData
+    }
+    fetch(`/confirmNewPath`, options)
         .then(res => res.text())
         .then(response => {
             if (response === "true") {
@@ -134,7 +159,15 @@ function confirmNewPath() {
 
 function actionDirFunc(event) {
     let path = event.target.value;
-    fetch(`/editDirectory?path=${path}`)
+    console.log("PATH A ENVIAR ----> "+path)
+
+    const formData = new FormData();
+    formData.append("path",path);
+    let options = {
+        method: "POST",
+        body: formData
+    }
+    fetch(`/editDirectory`,options)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
@@ -143,10 +176,7 @@ function actionDirFunc(event) {
 
             contentDir += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${json.pathFirst}">../</button></li>`
             for (const [key, value] of Object.entries(json.dirList)) {
-                contentDir += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">/${key}</button></li>`
-            }
-            for (const [key, value] of Object.entries(json.fileList)) {
-                contentFiles += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
+                contentDir += `<li class="pointer"><button onclick="actionDirFunc(event)" class="botonList" value="${value}">${key}</button></li>`
             }
             document.getElementById("contentPath").innerHTML = contentDir + contentFiles;
             const actionDirBtn = document.getElementsByName("actionDir");
