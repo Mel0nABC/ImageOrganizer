@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/showSetAdminUser").permitAll()
                                 .requestMatchers("/setAdminUser").permitAll()
-                                .requestMatchers("/uploadImg").permitAll()
+                                .requestMatchers("/uploadImg").authenticated()
                                 .anyRequest().authenticated())
                 .csrf(t -> t.disable())
                 .build();

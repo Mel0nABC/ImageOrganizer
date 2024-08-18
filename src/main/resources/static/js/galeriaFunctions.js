@@ -54,10 +54,8 @@ function editPathFolders() {
 
 
 function addNewPath() {
-
-
     const formData = new FormData();
-    formData.append("path","rootUnits");
+    formData.append("path", "rootUnits");
 
     let options = {
         method: "POST",
@@ -109,13 +107,13 @@ function deletePath(event) {
 
         let path = event.target.value;
         const formData = new FormData();
-        formData.append("path",path)
+        formData.append("path", path)
         let options = {
             method: "POST",
-            body:formData
-        }        
-        
-        fetch(`/delDirectory`,options)
+            body: formData
+        }
+
+        fetch(`/delDirectory`, options)
             .then(res => res.text())
             .then(response => {
 
@@ -135,18 +133,18 @@ function closeNewPathDiv() {
 let pathStatus = false;
 
 function confirmNewPath() {
-    
-    if(document.getElementById("dirRaizTrueFalse").value === "false"){
+
+    if (document.getElementById("dirRaizTrueFalse").value === "false") {
         alert("No se pueden añadir directorios raiz. Debe seleccionar una subcarpeta.")
         return;
     }
 
     let newFolderPath = document.getElementById("absolutPath").value;
     const formData = new FormData();
-    formData.append("newFolderParh",newFolderPath)
+    formData.append("newFolderParh", newFolderPath)
     let options = {
         method: "POST",
-        body:formData
+        body: formData
     }
     fetch(`/confirmNewPath`, options)
         .then(res => res.text())
@@ -163,20 +161,20 @@ function confirmNewPath() {
 }
 
 function actionDirFunc(event) {
-    
-    if(event.target.id !== "raiz"){
-        document.getElementById("dirRaizTrueFalse").value="true";
-    }else{
-        document.getElementById("dirRaizTrueFalse").value="false";
+
+    if (event.target.id !== "raiz") {
+        document.getElementById("dirRaizTrueFalse").value = "true";
+    } else {
+        document.getElementById("dirRaizTrueFalse").value = "false";
     }
     let path = event.target.value;
     const formData = new FormData();
-    formData.append("path",path);
+    formData.append("path", path);
     let options = {
         method: "POST",
         body: formData
     }
-    fetch(`/editDirectory`,options)
+    fetch(`/editDirectory`, options)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)

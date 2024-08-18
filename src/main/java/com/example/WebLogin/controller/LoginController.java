@@ -42,6 +42,18 @@ public class LoginController {
         return "showSetAdminUser";
     }
 
+    /**
+     * Método de inicio de la aplicación. Dependiendo si es la primera vez que se
+     * inicia la aplicación o no, hará una cosa u otra.
+     * 
+     * En el primer inicio, se solicitará al usuario que cambie el usuario y
+     * contraseña para el usuario administrador. En las siguientes ya será un uso
+     * normal.
+     * 
+     * @param username usuario en el login
+     * @param password passwd en el login
+     * @return
+     */
     @PostMapping("/setAdminUser")
     public String setAdminUser(@RequestParam("username") String username, @RequestParam("password") String password) {
 

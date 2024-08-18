@@ -10,9 +10,7 @@ import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.RoleEnum;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.service.UserDetailServiceImpl;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,7 +18,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.context.support.BeanDefinitionDsl.Role;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -39,11 +36,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.function.Consumer;
 
 @Controller
 public class DashBoardController {
 
+    // Declaración e inicialización de variables.
     private String username = "";
     private String SEPARADOR = File.separator;
     private Authentication authentication;
@@ -57,6 +54,13 @@ public class DashBoardController {
         this.userDetailsService = users;
     }
 
+    /**
+     * Método de inicio
+     * 
+     * @param model
+     * @param request
+     * @return
+     */
     @PostMapping("/galeria/**")
     public String cargarGaleriaPostquestParam(Model model, HttpServletRequest request) {
         authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -64,6 +68,13 @@ public class DashBoardController {
         return "redirect:/galeria";
     }
 
+    /**
+     * Método de inicio, carga carpetas, imágenes, menús en la aplicación
+     * 
+     * @param model
+     * @param request
+     * @return
+     */
     @GetMapping("/galeria/**")
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
         authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -80,15 +91,13 @@ public class DashBoardController {
         return "dashboard";
     }
 
-    public File[] getPathList(String username) {
-        List<PathEntity> listPath = userDetailsService.getPathList(username);
-        File[] filesDirList = new File[listPath.size()];
-        for (int i = 0; i < listPath.size(); i++) {
-            filesDirList[i] = new File(listPath.get(i).getPath_dir());
-        }
-        return filesDirList;
-    }
-
+    /**
+     * Subiremos imágenes, una o varias a este mapping.
+     * 
+     * @param multipartFileList clase para obtener varios archivos, en este caso,
+     *                          sólo imágenes.
+     * @return retornamos una respuesta en formato String.
+     */
     @PostMapping("/uploadImg")
     @ResponseBody
     public String uploadImg(@RequestParam("inputImgList") MultipartFile[] multipartFileList) {
@@ -116,6 +125,12 @@ public class DashBoardController {
         return "ok";
     }
 
+    /**
+     * Método para crear directorios
+     * 
+     * @param dirName
+     * @return
+     */
     @RequestMapping("/mkDir")
     @ResponseBody
     public ObjectNode mkDir(@RequestParam("dirName") String dirName) {
@@ -135,6 +150,13 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Maping para eliminar imágenes o carpetas, si se borra una carpeta, se elimina
+     * todo su interior
+     * 
+     * @param path
+     * @return
+     */
     @RequestMapping("/delImgOrDirectory")
     @ResponseBody
     public ObjectNode delImgOrDirectory(@RequestParam("path") String path) {
@@ -169,6 +191,13 @@ public class DashBoardController {
 
     }
 
+    /**
+     * Mapping para renombrar imágenes o carpetas.
+     * 
+     * @param name
+     * @param newName
+     * @return
+     */
     @RequestMapping("/rename")
     @ResponseBody
     public ObjectNode renameDirOrFile(@RequestParam("name") String name, @RequestParam("newName") String newName) {
@@ -191,6 +220,12 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Devolvemos la lista de carpetas que tiene el usuario configuradas para sus
+     * bibliotecas
+     * 
+     * @return
+     */
     @GetMapping("/openConfigDirectory")
     @ResponseBody
     public ObjectNode configDirectory() {
@@ -206,6 +241,13 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Mapping para cuando accedemos a la configuración de bibliotecas del usuario,
+     * proporciona las que ya tenga configuradas.
+     * 
+     * @param path
+     * @return
+     */
     @PostMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
@@ -229,6 +271,13 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Para proporcionar los directorios que tenga configurado en un sistema
+     * operativo windows.
+     * 
+     * @param path
+     * @return
+     */
     public ObjectNode getWinDir(@RequestParam("path") String path) {
         File[] pathList = null;
         Map<String, String> dirList = new HashMap<>();
@@ -277,6 +326,13 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Para proporcionar los directorios que tenga configurado en un sistema
+     * operativo basado en unix (linux y mac).
+     * 
+     * @param path
+     * @return
+     */
     public ObjectNode getUnixDir(@RequestParam("path") String path) {
         File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
         Map<String, String> dirList = new HashMap<>();
@@ -309,6 +365,12 @@ public class DashBoardController {
         return json;
     }
 
+    /**
+     * Para guardar una nueva biblioteca en la base de datos.
+     * 
+     * @param folderPath
+     * @return
+     */
     @PostMapping("/confirmNewPath")
     @ResponseBody
     public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
@@ -342,6 +404,12 @@ public class DashBoardController {
         return true;
     }
 
+    /**
+     * Para eliminar directorios de la biblioteca
+     * 
+     * @param path
+     * @return
+     */
     @PostMapping("/delDirectory")
     @ResponseBody
     public Boolean delDirectory(@RequestParam("path") String path) {
@@ -363,6 +431,12 @@ public class DashBoardController {
         return true;
     }
 
+    /**
+     * Cuando consultamos en la aplicación la información de una imagen
+     * 
+     * @param imgName
+     * @return
+     */
     @GetMapping("/imgProperties")
     @ResponseBody
     public ImageProperties imgProperties(@RequestParam("imgName") String imgName) {
@@ -536,6 +610,12 @@ public class DashBoardController {
         return uri;
     }
 
+    /**
+     * Cuando accedemos a la sección gestión de usuarios, proporcionamos todos los
+     * usuarios de la aplicación
+     * 
+     * @return
+     */
     @RequestMapping("/getAllUsersManagement")
     @ResponseBody
     public ObjectNode getAllUsersManagement() {
@@ -543,6 +623,13 @@ public class DashBoardController {
         return json.putPOJO("userList", listUsers);
     }
 
+    /**
+     * Cuando hacemos una edición de cualquier campo de cualquier usuario, se guarda
+     * directamente
+     * 
+     * @param json
+     * @return
+     */
     @PostMapping("/editUser")
     @ResponseBody
     public ObjectNode editUser(@RequestBody String json) {
@@ -580,6 +667,21 @@ public class DashBoardController {
         }
 
         return null;
+    }
+
+    /**
+     * Método para obtener los directorios de las bibliotecas del usuario.
+     * 
+     * @param username
+     * @return
+     */
+    public File[] getPathList(String username) {
+        List<PathEntity> listPath = userDetailsService.getPathList(username);
+        File[] filesDirList = new File[listPath.size()];
+        for (int i = 0; i < listPath.size(); i++) {
+            filesDirList[i] = new File(listPath.get(i).getPath_dir());
+        }
+        return filesDirList;
     }
 
 }
