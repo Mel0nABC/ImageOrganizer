@@ -5,6 +5,7 @@ com/example/WebLogin/config/SecurityConfig.class
 com/example/WebLogin/otherClasses/ImageProperties.class
 com/example/WebLogin/persistence/entity/RoleEnum.class
 com/example/WebLogin/otherClasses/DirFilePathClass.class
+com/example/WebLogin/controller/DashBoardController$1.class
 com/example/WebLogin/service/UserDetailServiceImpl.class
 com/example/WebLogin/otherClasses/GetImageProperties.class
 com/example/WebLogin/persistence/entity/UserEntity.class
