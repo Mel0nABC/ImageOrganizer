@@ -257,6 +257,12 @@ table {
     position: absolute; */
 }
 
+.subventana-emergente{
+  position: absolute;
+  margin-top: 150px;
+  left: 50%;
+}
+
 #botonesNav{
   display: flex;
   justify-content: center;
