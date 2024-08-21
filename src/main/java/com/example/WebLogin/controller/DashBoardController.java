@@ -623,6 +623,7 @@ public class DashBoardController {
                 return retName.toLowerCase().startsWith(filter.toLowerCase());
             }
         });
+        System.out.println("TEST");
         return filesDirList;
     }
 
