@@ -623,7 +623,6 @@ public class DashBoardController {
                 return retName.toLowerCase().startsWith(filter.toLowerCase());
             }
         });
-        System.out.println("TEST 2 para git ignore");
         return filesDirList;
     }
 
