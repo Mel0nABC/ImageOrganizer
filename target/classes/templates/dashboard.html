@@ -19,12 +19,7 @@
                 <button onclick="menuMkDir()">CREAR CARPETA</button>
                 <button onclick="menuNewImages()">SUBIR IMÁGENES</button>
                 <button th:if="${roleType == 'ADMIN'}" onclick="userManagement()">GESTIÓN USUARIOS</button>
-            </div>
-            <div id="btnsUsuario">
-                <button onclick="userInfo()">INFO USUARIO</button>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit">LOGOUT</button>
-                </form>
+                <button onclick="logout()">LOGOUT</button>
             </div>
         </div>
         <h3 id="rutaPath"></h3>
@@ -32,6 +27,10 @@
 
     <section>
         <div id="respMsg"></div>
+        <div id="filterForName-container">
+            <label>Filtrar por nombre:</label>
+            <input id="filterForName" type="text" />
+        </div>
         <div id="seccionCarpetasImagenes" class="center"></div>
     </section>
     <footer>

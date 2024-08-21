@@ -1,10 +1,22 @@
 package com.example.WebLogin.controller;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.service.UserDetailServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class LoginController {
@@ -78,6 +90,11 @@ public class LoginController {
             return "redirect:/showSetAdminUser?error=Ha habido algún error inesperado y no se ha podido cambiar el usuario, vuelve a intentarlo.";
         }
         return "redirect:/";
+    }
+
+    @GetMapping("/logout")
+    public void logout(HttpSession session) {
+        System.out.println("LOGOUT");
     }
 
 }

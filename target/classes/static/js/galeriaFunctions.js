@@ -1,6 +1,9 @@
 
 window.addEventListener("load", (event) => {
-    loadSeccionCarpetasImagenes();
+    loadSeccionCarpetasImagenes("");
+    document.getElementById("filterForName").addEventListener("keyup", event => {
+        loadSeccionCarpetasImagenes(event.target.value)
+    })
 });
 
 
@@ -34,6 +37,7 @@ function editPathFolders() {
                                             <button onclick="addNewPath()" class="boton">Agregar nueva ruta</button>
                                             <button onclick="closeEditPathFolders()" class="boton">CERRAR</button>
                                         </div>
+                                        
                                     <section>
                                         <table>
                                             <thead>
@@ -120,7 +124,7 @@ function deletePath(event) {
                 if (response === "true") {
                     document.getElementById(path).remove();
                     pathStatus = true;
-                    loadSeccionCarpetasImagenes();
+                    loadSeccionCarpetasImagenes("");
                 }
             })
     }
@@ -153,7 +157,7 @@ function confirmNewPath() {
                 alert("Directorio añadido satisfactoriamente.")
                 editPathFolders();
                 pathStatus = true;
-                loadSeccionCarpetasImagenes();
+                loadSeccionCarpetasImagenes("");
             } else {
                 alert("No se pudo añadir el directorio seleccionado.")
             }
@@ -232,7 +236,7 @@ function acceptNewFolder() {
                 let json = JSON.parse(response)
                 msgNewFolder.innerHTML = json.respuesta
                 if (json.respuesta === "Carpeta creada satisfactoriamente.") {
-                    loadSeccionCarpetasImagenes();
+                    loadSeccionCarpetasImagenes("");
                     document.getElementById("dirNameNewPath").value = "";
                 }
             })
@@ -248,15 +252,15 @@ function cancelNewFolder() {
 
 
 // INICIO ZONA CARPETAS E CARGA IMÁGENES -- ####################################
-function loadSeccionCarpetasImagenes() {
+function loadSeccionCarpetasImagenes(filter) {
     var pathname = window.location.pathname;
-
-    fetch(`/cargaContenido?uri=${pathname}`)
+    console.log("FILTER --> "+filter)
+    fetch(`/cargaContenido?uri=${pathname}&filter=${filter}`)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
 
-            document.getElementById("header-container").innerHTML = `<h1>${json.username}</h1>`
+            document.getElementById("header-container").innerHTML = `<h1>Bienvenido a su tablero personal, ${json.username}</h1>`
 
             let verifyEmptyFolder = json.folderStatus;
             let emptyFolder = "";
@@ -268,7 +272,7 @@ function loadSeccionCarpetasImagenes() {
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
                     dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
-                            <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/carpeta.png"></a>
+                            <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/Album-PNG.png"></a>
                             <p id="showName${json.dirList[i].name}">${json.dirList[i].name}</p>`
 
                     if (json.uriUbicacion.length > 1) {
@@ -297,16 +301,10 @@ function loadSeccionCarpetasImagenes() {
             let uriUbica = "";
 
             for (i = 0; i < json.uriUbicacion.length; i++) {
-                uriUbica += `<a id="${json.uriUbicacion[i].uriTotal}" name="uriUbicaList" class="pointer" style="display: inline;">${json.uriUbicacion[i].carpeta}</a>`;
+                uriUbica += `<a onclick="uriChangePath(event)" id="${json.uriUbicacion[i].uriTotal}" name="uriUbicaList" class="pointer" style="display: inline;">${json.uriUbicacion[i].carpeta}</a>`;
             }
             document.getElementById("rutaPath").innerHTML = uriUbica
             let uriUbicaList = document.getElementsByName("uriUbicaList");
-
-            for (i = 0; i < uriUbicaList.length; i++) {
-                uriUbicaList[i].addEventListener("click", event => {
-                    window.location.pathname = event.target.id;
-                })
-            }
 
             let html =
                 `<div id="seccionCarpetasImagenes-container">
@@ -317,6 +315,10 @@ function loadSeccionCarpetasImagenes() {
                    </div>`;
             document.getElementById("seccionCarpetasImagenes").innerHTML = html;
         })
+}
+
+function uriChangePath(event) {
+    window.location.pathname = event.target.id;
 }
 
 function delFolImg(event) {
@@ -495,7 +497,7 @@ function acceptNewImg() {
         })
             .then(res => res.text())
             .then(response => {
-                loadSeccionCarpetasImagenes();
+                loadSeccionCarpetasImagenes("");
                 cancelNewImg();
             })
 
@@ -514,21 +516,25 @@ function cancelNewImg() {
 //INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
 function userManagement() {
-
+    let actualUsername;
     const node = document.createElement("div");
     node.setAttribute("id", "userManagement-container");
     node.setAttribute("class", "ventana-emergente");
     document.getElementById("nav").appendChild(node);
-
+    let getUserName;
     fetch(`/getAllUsersManagement`)
         .then(res => res.text())
         .then(response => {
+
             let json = JSON.parse(response);
+
+            actualUsername = json.username;
             let userInfo = '';
             for (i = 0; i < json.userList.length; i++) {
                 // for(a = 0; a < json.userList.roles.length)
                 const id = json.userList[i].id;
                 let enableSelected = "selected";
+
 
                 userInfo +=
                     `<tr id="${id}" name="trUser">
@@ -570,6 +576,9 @@ function userManagement() {
                             <option value="DEVELOPER">DEVELOPER</option>
                         </select>
                     </td>
+                    <td>
+                        <button id="${id}" onclick="delUser(event)">Eliminar</button>
+                    </td>
                 </tr>`;
             }
             let htmlTable = `    <table class="tableUSerManagement">
@@ -577,11 +586,12 @@ function userManagement() {
                                         <tr>
                                             <th>ID</th>
                                             <th>USERNAME</th>
-                                            <th>ACTIVADA</th>
+                                            <th>ACTIVADO</th>
                                             <th>NO EXPIRA</th>
                                             <th>NO CERRADO</th>
                                             <th>CREDENCIALES NO EXPIRAN</th>
                                             <th>ROL ASIGNADO</th>
+                                            <th>ELIMINAR USUARIO</th>
                                         </tr>
                                     </thead>
         
@@ -595,16 +605,25 @@ function userManagement() {
             userManaContainer = document.getElementById("userManagement-container");
             userManaContainer.innerHTML = `<div id="userManaContainer" class="contenido-emergente">
                                     <h1>GESTIÓN DE USUARIOS</h1>
+                                    <button onclick="newUserManagement()">NUEVO USUARIO</button>
                                     <button onclick="cancelUserManagement()">CERRAR</button>
                                     ${htmlTable}
                                 </div>`
         })
         .then(final => {
-
+            let newUsername;
             const rows = document.getElementsByName("trUser");
             for (i = 0; i < rows.length; i++) {
+
+                rows[i].addEventListener("click", event => {
+                    const tr = event.target.closest("tr");
+                    actualUsername: tr.querySelector("#username").value
+                })
+
+
                 rows[i].addEventListener("change", event => {
                     const tr = event.target.closest("tr");
+                    newUsername = tr.querySelector("#username").value
                     let formData = JSON.stringify({
                         id: tr.id,
                         username: tr.querySelector("#username").value,
@@ -622,12 +641,13 @@ function userManagement() {
                     fetch(`/editUser`, options)
                         .then(res => res.text()
                             .then(response => {
-                                userManagement();
+                                if (actualUsername !== newUsername) {
+                                    // alert("Ha cambiado el nombre de usuario actual, vuelva a hacer login.")
+                                    // location.href = "/logout";
+                                }
                             }))
                 })
             }
-
-
 
             //ASIGNAMOS LOS VALORES REALES A LOS SELECTS
             const selects = document.getElementsByTagName("select");
@@ -649,20 +669,135 @@ function cancelUserManagement() {
 function newUserManagement() {
     // Abriremos una pequeña ventana emergente para añadir el usuario. 
     // Después refrescaremos la lista entera, si se acepta, si se cancela, no haremos nada
+    const node = document.createElement("div");
+    node.setAttribute("id", "newUser-Container");
+    node.setAttribute("class", "subventana-emergente");
+    document.getElementById("nav").appendChild(node);
+    const newUser_container = document.getElementById("newUser-Container");
+    newUser_container.innerHTML = `<div id="newUserContainer" class="contenido-emergente">
+                                        <button onclick="newUserCancel(event)">CANCELAR</button>
+                                        <button onclick="newUserConfirm(event)">ACEPTAR</button>
+                                        <table class="tableUSerManagement">
+                                                <thead>
+                                                    <tr>
+                                                        <th>USERNAME</th>
+                                                        <th>PASSWORD</th>
+                                                        <th>ACTIVADA</th>
+                                                        <th>NO EXPIRA</th>
+                                                        <th>NO CERRADO</th>
+                                                        <th>CREDENCIALES NO EXPIRAN</th>
+                                                        <th>ROL ASIGNADO</th>
+                                                    </tr>
+                                                </thead>
+                    
+                                                <tbody>
+                                                    <tr id="newUserTr" name="trUser">
+                                                        <td>
+                                                            <input id="username"></input>
+                                                        </td>
+                                                        <td>
+                                                            <input id="password"></input>
+                                                        </td>
+                                                        <td>
+                                                            <select id="enabled">
+                                                            <option value="true">True</option>
+                                                            <option value="false">False</option>
+                                                          </select>
+                                                        </td>
+                                                        <td>
+                                                            <select id="accountNoExpired">
+                                                                <option value="true">True</option>
+                                                                <option value="false">False</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                                <select id="accountNoLocked">
+                                                                <option value="true">True</option>
+                                                                <option value="false">False</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                                <select id="credentialNoExpired">
+                                                                <option value="true">True</option>
+                                                                <option value="false">False</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                                <select id="roleEnum">
+                                                                <option value="ADMIN">ADMIN</option>
+                                                                <option value="USER">USER</option>
+                                                                <option value="INVITED">INVITED</option>
+                                                                <option value="DEVELOPER">DEVELOPER</option>
+                                                            </select>
+                                                        </td>
+                                                </tbody>
+                    
+                                            </table>
+                                        </div>`;
 }
 
-
-function delUserManagement() {
-    // Eliminaremos usuario, solicitaremos confirmación
+function newUserCancel() {
+    document.getElementById("newUser-Container").remove();
 }
 
-//FINAL MENÚ DEL BOTÓN  -- INFO USUARIO -- ####################################
+function newUserConfirm(event) {
+
+    const tr = document.getElementById("newUserTr");
+    newUsername = tr.querySelector("#username").value
+    let formData = JSON.stringify({
+        username: tr.querySelector("#username").value,
+        password: tr.querySelector("#password").value,
+        enabled: tr.querySelector("#enabled").value,
+        accountNoExpired: tr.querySelector("#accountNoExpired").value,
+        accountNoLocked: tr.querySelector("#accountNoLocked").value,
+        credentialNoExpired: tr.querySelector("#credentialNoExpired").value,
+        roleEnum: tr.querySelector("#roleEnum").value
+    })
+    let options = {
+        method: 'POST',
+        body: formData
+    };
+
+    fetch(`/newUser`, options)
+        .then(res => res.text()
+            .then(response => {
+                console.log("RESPUESTA NEW USER: " + response)
+                if (response === "true") {
+                    newUserCancel();
+                    userManagement();
+
+                }
+            }))
+}
+
+function delUser(event) {
+
+    if (confirm("¿Va a eliminar el usuario con ID:" + event.target.id + ", ¿Desea continuar?")) {
+        console.log("ID --> " + event.target.id)
+        let formData = new FormData();
+        formData.append("id", event.target.id);
+        const options = {
+            method: "POST",
+            body: formData
+        }
+        fetch(`/delUser`, options)
+            .then(res => res.text()
+                .then(response => {
+
+                    if (response === "true") {
+                        userManagement();
+                    } else {
+                        alert("Ha ocurrido algún problemas al eliminar el usuario");
+                    }
+
+                }))
+    }
+}
 
 //INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
-function userInfo() {
-    // Para la información del usuario que usa la aplicacióon.
-    console.log("userInfo")
+//INICIO MENÚ DEL BOTÓN  -- LOGOUT -- ####################################
+function logout(){
+    location.href = "/logout";
 }
-
-//FINAL MENÚ DEL BOTÓN  -- INFO USUARIO -- ####################################
+//FINAL MENÚ DEL BOTÓN  -- LOGOUT -- ####################################

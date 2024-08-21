@@ -16,6 +16,6 @@ public interface UserRepository extends CrudRepository<UserEntity, Long>  {
 
     UserEntity getUserByUsername(String username);
 
-    
+    void deleteById(Long id);
 
 }

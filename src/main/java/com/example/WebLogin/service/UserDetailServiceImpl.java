@@ -70,7 +70,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return userRepository.findAll();
     }
 
-
     public UserEntity findUserEntityById(Long id) {
         return userRepository.findUserEntityById(id);
     }
@@ -90,6 +89,17 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
         userRepository.save(user);
 
+        return true;
+    }
+
+    public boolean deleteById(Long id) {
+
+        Long beforeDel = userRepository.count();
+        userRepository.deleteById(id);
+        Long afterDel = userRepository.count();
+        if (beforeDel == afterDel) {
+            return false;
+        }
         return true;
     }
 

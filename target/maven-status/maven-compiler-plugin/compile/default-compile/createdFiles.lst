@@ -15,6 +15,7 @@ com/example/WebLogin/persistence/repository/UserRepository.class
 com/example/WebLogin/persistence/entity/PathEntity$PathEntityBuilder.class
 com/example/WebLogin/otherClasses/UriLinks.class
 com/example/WebLogin/persistence/entity/UserEntity$UserEntityBuilder.class
+com/example/WebLogin/otherClasses/GetRoles.class
 com/example/WebLogin/persistence/entity/PermissionEntity.class
 com/example/WebLogin/WebLoginApplication.class
 com/example/WebLogin/filesControl/GestorArchivosCarpetas.class
