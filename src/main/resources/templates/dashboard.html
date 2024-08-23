@@ -10,27 +10,39 @@
 
 <body id="body">
     <header id="header-container">
-    </header>
-    <nav id="nav">
+        <nav id="nav">
 
-        <div id="botonesNav">
-            <div id="btnsAcciones">
-                <button onclick="editPathFolders()">BIBLIOTECAS</button>
-                <button onclick="menuMkDir()">CREAR CARPETA</button>
-                <button onclick="menuNewImages()">SUBIR IMÁGENES</button>
-                <button th:if="${roleType == 'ADMIN'}" onclick="userManagement()">GESTIÓN USUARIOS</button>
-                <button onclick="logout()">LOGOUT</button>
+            <div id="botonesNav">
+                <div id="rutaPath">
+                    <h3></h3>
+                </div>
+
+                <div id="btnsAcciones">
+                    <button onclick="editPathFolders()">BIBLIOTECAS</button>
+                    <button onclick="menuMkDir()">CREAR CARPETA</button>
+                    <button onclick="menuNewImages()">SUBIR IMÁGENES</button>
+                    <button onclick="menuManageImgDir()">GESTIÓN IMÁGENES/DIR</button>
+                    <button th:if="${roleType == 'ADMIN'}" onclick="userManagement()">GESTIÓN USUARIOS</button>
+                    <button onclick="logout()">LOGOUT</button>
+                </div>
+
+                <div id="filterForName-container">
+                    <label>BUSCAR:</label>
+                    <input id="filterForName" type="text" />
+                </div>
+                <div id="userInfo">
+                    <p th:text="'Usuario: '+${username}"></p>
+                    <p th:text="'Rol: '+${roleType}"></p>
+                </div>
             </div>
-        </div>
-        <h3 id="rutaPath"></h3>
-    </nav>
 
-    <section>
+        </nav>
+    </header>
+
+
+    <section id="imgDirSection">
         <div id="respMsg"></div>
-        <div id="filterForName-container">
-            <label>Filtrar por nombre:</label>
-            <input id="filterForName" type="text" />
-        </div>
+
         <div id="seccionCarpetasImagenes" class="center"></div>
     </section>
     <footer>

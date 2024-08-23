@@ -75,10 +75,11 @@ public class DashBoardController {
         this.username = authentication.getName();
         actualUser = userDetailsService.getUserByUsername(username);
         getRoleType(model);
+
         return "dashboard";
     }
 
-    public static void getRoleType(Model model) {
+    public void getRoleType(Model model) {
 
         // Obtenemos el rol del usuario y lo enviamos al DOM.
         String roleType = actualUser.getRoles().stream()
@@ -86,6 +87,7 @@ public class DashBoardController {
                 .findFirst()
                 .orElse(null).toString();
         model.addAttribute("roleType", roleType);
+        model.addAttribute("username", username);
     }
 
     /**
@@ -156,30 +158,31 @@ public class DashBoardController {
      */
     @RequestMapping("/delImgOrDirectory")
     @ResponseBody
-    public ObjectNode delImgOrDirectory(@RequestParam("path") String path) {
-        String respuesta;
-        String delMsg;
-        String[] pathDividido = path.split("/");
-        String locate = pathDividido[pathDividido.length - 1];
-        File imgToDel = new File(actualDirectory + SEPARADOR + locate);
+    public ObjectNode delImgOrDirectory(@RequestParam("list") String[] list) {
+        String respuesta = "";
+        String delMsg = "";
 
-        if (imgToDel.exists() | imgToDel.isDirectory()) {
-            if (imgToDel.isFile()) {
-                imgToDel.delete();
-                delMsg = "Imagen eliminada satisfactoriamente.";
-            } else {
-                try {
-                    FileUtils.deleteDirectory(imgToDel);
-                    delMsg = "Directorio eliminado satisfactoriamente.";
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+        for (int i = 0; i < list.length; i++) {
+            File imgToDel = new File(actualDirectory + SEPARADOR + list[i]);
+            if (imgToDel.exists() | imgToDel.isDirectory()) {
+                if (imgToDel.isFile()) {
+                    imgToDel.delete();
+                    delMsg = "Imagen eliminada satisfactoriamente.";
+                } else {
+                    try {
+                        FileUtils.deleteDirectory(imgToDel);
+                        delMsg = "Directorio eliminado satisfactoriamente.";
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+                respuesta = "ok";
+            } else {
+                respuesta = "mal";
+                delMsg = "Error al intentar eliminar el elemento seleccionado.";
             }
-            respuesta = "ok";
-        } else {
-            respuesta = "mal";
-            delMsg = "Error al intentar eliminar el elemento seleccionado.";
         }
+
         ObjectNode json = mapper.createObjectNode();
         json.put("respuesta", respuesta);
         json.put("delMsg", delMsg);
@@ -614,7 +617,8 @@ public class DashBoardController {
      * Retorna una lista de la ubicación de f, filtrada por el inicio del texto
      * indicado en filter
      * 
-     * @param f
+     * @param f,      aportamos el path donde buscar.
+     * @param filter, palabra o en este caso, inicio de palabra a seleccionar.
      * @return
      */
     public File[] getFilteresFileList(File f, String filter) {
@@ -768,6 +772,26 @@ public class DashBoardController {
             filesDirList[i] = new File(listPath.get(i).getPath_dir());
         }
         return filesDirList;
+    }
+
+    @PostMapping("/mvDirFiles")
+    @ResponseBody
+    public ObjectNode mvDirFiles(@RequestParam("newFolder") String newFolder,
+            @RequestParam("fileDirList") String[] fileDirList) {
+        List<String> errors = new ArrayList<>();
+
+        for (String file : fileDirList) {
+            File fileOld = new File(actualDirectory + SEPARADOR + file);
+            File fileNew = new File(newFolder + SEPARADOR + file);
+            if (!fileNew.exists()) {
+                fileOld.renameTo(fileNew);
+            } else {
+                errors.add(file);
+            }
+        }
+        ObjectNode node = mapper.createObjectNode();
+        node.putPOJO("errors", errors);
+        return node;
     }
 
 }

@@ -4,6 +4,7 @@ window.addEventListener("load", (event) => {
     document.getElementById("filterForName").addEventListener("keyup", event => {
         loadSeccionCarpetasImagenes(event.target.value)
     })
+    document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight+20 + "px";
 });
 
 
@@ -14,11 +15,12 @@ function cerrarCajaDel() {
 
 
 
-// INICIO MENÚ DEL BOTÓN  -- GESTION CARPETAS -- ####################################
+// INICIO MENÚ DEL BOTÓN  -- BIBLIOTECAS -- ####################################
 // PARA GESTIONAR LOS DIRECTORIOS CONFIGURADOS.
 function editPathFolders() {
-    document.getElementById("nav").innerHTML += `<div id="editPathFolders-container" class="ventana-emergente"></div>`;
+    document.getElementById("header-container").innerHTML += `<div id="editPathFolders-container" class="ventana-emergente"></div>`;
     editpathcontainer = document.getElementById("editPathFolders-container");
+
     fetch(`/openConfigDirectory`)
         .then(res => res.text())
         .then(response => {
@@ -31,6 +33,8 @@ function editPathFolders() {
                                 <td><button onclick="deletePath(event)" value="${jsonPath.configDirs[i]}">ELIMINAR</button></td>
                                 </tr>`;
             }
+
+
             let html = `<div id="editPathFolders" class="contenido-emergente">
                                     <h1>CONFIGURACIÓN DE BIBLIOTECAS</h1>
                                         <div class="menu-container">
@@ -57,9 +61,17 @@ function editPathFolders() {
 }
 
 
-function addNewPath() {
+function addNewPath(typeFunction) {
     const formData = new FormData();
     formData.append("path", "rootUnits");
+    let buttonTypeAceptar = "confirmNewPath()";
+
+    if (typeFunction === "mvDirFile") {
+        console.log("VENTANA DE MOVER E ELIMINAR")
+        buttonTypeAceptar = "mvImgDirFunction()"
+    } else {
+
+    }
 
     let options = {
         method: "POST",
@@ -79,7 +91,7 @@ function addNewPath() {
                         <div id="newPathDiv" class="newPathDiv">
                             <div class="newPathNav">
                                 <button onclick="closeNewPathDiv()">CANCELAR</button>
-                                <button onclick="confirmNewPath()">ACEPTAR</button>
+                                <button id="newPathButton" onclick="${buttonTypeAceptar}">ACEPTAR</button>
                             </div>
                             <div>
                                 <input id="absolutPath" type="text" value=""/>
@@ -132,6 +144,7 @@ function deletePath(event) {
 
 function closeNewPathDiv() {
     document.getElementById("newPathDiv").remove();
+    document.getElementById("editPathFolders").style.visibility = "hidden"
 }
 
 let pathStatus = false;
@@ -195,7 +208,7 @@ function actionDirFunc(event) {
         })
 }
 
-// FINAL MENÚ DEL BOTÓN  -- GESTION CARPETAS -- ####################################
+// FINAL MENÚ DEL BOTÓN  -- BIBLIOTECAS -- ####################################
 
 // INICIO MENÚ DEL BOTÓN  -- NUEVA CARPETA -- ####################################
 
@@ -203,26 +216,22 @@ function menuMkDir() {
 
     if (window.location.pathname === "/galeria") {
         alert("En esta ubicación, no puede crear carpetas.")
-    } else {
-        const node = document.createElement("div");
-        node.setAttribute("id", "mkdir-container");
-        node.setAttribute("class", "ventana-emergente");
-        document.getElementById("nav").appendChild(node);
+        return;
+    }
+    const node = document.createElement("div");
+    node.setAttribute("id", "mkdir-container");
+    node.setAttribute("class", "ventana-emergente");
+    document.getElementById("header-container").appendChild(node);
 
-        mkdircontainer = document.getElementById("mkdir-container");
-        mkdircontainer.innerHTML = `<div id="mkdirsection" class="contenido-emergente">
+    mkdircontainer = document.getElementById("mkdir-container");
+    mkdircontainer.innerHTML = `<div id="mkdirsection" class="contenido-emergente">
                             <h1>CREAR NUEVA CARPETA</h1>
                             <input id="dirNameNewPath" type="text" />
                             <button onclick="acceptNewFolder()">ACEPTAR</button>
                             <button onclick="cancelNewFolder()">CERRAR</button>
                             <p id="msgNewFolder"></p>
                         </div>`
-        document.getElementById("dirNameNewPath").focus();
-    }
-
-
-
-
+    document.getElementById("dirNameNewPath").focus();
 }
 
 function acceptNewFolder() {
@@ -254,14 +263,11 @@ function cancelNewFolder() {
 // INICIO ZONA CARPETAS E CARGA IMÁGENES -- ####################################
 function loadSeccionCarpetasImagenes(filter) {
     var pathname = window.location.pathname;
-    console.log("FILTER --> "+filter)
+    console.log("FILTER --> " + filter)
     fetch(`/cargaContenido?uri=${pathname}&filter=${filter}`)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
-
-            document.getElementById("header-container").innerHTML = `<h1>Bienvenido a su tablero personal, ${json.username}</h1>`
-
             let verifyEmptyFolder = json.folderStatus;
             let emptyFolder = "";
             let dirSection = "";
@@ -272,14 +278,16 @@ function loadSeccionCarpetasImagenes(filter) {
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
                     dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
+                            <div>
+                                <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
+                            </div>
                             <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/Album-PNG.png"></a>
-                            <p id="showName${json.dirList[i].name}">${json.dirList[i].name}</p>`
+                            <p id="showName${json.dirList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
 
                     if (json.uriUbicacion.length > 1) {
                         dirSection +=
-                            `<button id="${json.dirList[i].name}" value="${json.dirList[i].src}" onclick="delFolImg(event)">Eliminar</button>
-                                 <input id="newName${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />
-                                 <button value="${json.dirList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>`;
+                            `   <input id="newName${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />`;
+                        // <button value="${json.dirList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>`
                     }
                     dirSection += ` </article>`;
 
@@ -287,14 +295,16 @@ function loadSeccionCarpetasImagenes(filter) {
                 //AÑADIR ARCHIVOS
                 for (i = 0; i < json.fileList.length; i++) {
                     fileSection += `<article id="${json.fileList[i].name}" class="imgContainer" name="${json.fileList[i].name}">
+                        <div>
+                            <input id="${json.fileList[i].name}" type="checkbox" class="mvDirFile"/>
+                        </div>
                         <a onclick="getInfoImg('${json.fileList[i].name}','${json.fileList[i].src}')">
                             <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}">
                         </a>
-                        <p id="showName${json.fileList[i].name}">${json.fileList[i].name}</p>
-                        <button id="${json.fileList[i].name}" value="${json.fileList[i].src}" onclick="delFolImg(event)">Eliminar</button>
+                        <p id="showName${json.fileList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.fileList[i].name}</p>
                         <input id="newName${json.fileList[i].name}" name="newName" value="${json.fileList[i].name}" type="hidden" />
-                        <button value="${json.fileList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>
                         </article>`
+                    // <button value="${json.fileList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>
                 }
 
             }
@@ -303,7 +313,7 @@ function loadSeccionCarpetasImagenes(filter) {
             for (i = 0; i < json.uriUbicacion.length; i++) {
                 uriUbica += `<a onclick="uriChangePath(event)" id="${json.uriUbicacion[i].uriTotal}" name="uriUbicaList" class="pointer" style="display: inline;">${json.uriUbicacion[i].carpeta}</a>`;
             }
-            document.getElementById("rutaPath").innerHTML = uriUbica
+            document.getElementById("rutaPath").innerHTML = "UBICACIÓN:</br> " + uriUbica
             let uriUbicaList = document.getElementsByName("uriUbicaList");
 
             let html =
@@ -314,65 +324,63 @@ function loadSeccionCarpetasImagenes(filter) {
                         ${fileSection}
                    </div>`;
             document.getElementById("seccionCarpetasImagenes").innerHTML = html;
+
+            const renameP = document.getElementsByName("rename");
+            for (i = 0; i < renameP.length; i++) {
+                renameP[i].addEventListener("click", event => {
+                    const father = event.target.parentElement;
+                    const inputNewName = father.lastElementChild
+                    let nombre = inputNewName.value
+                    inputNewName.type = "visible";
+                    const end = inputNewName.value.length
+                    inputNewName.setSelectionRange(end, end);
+                    inputNewName.focus()
+
+                    console.log(father)
+                    console.log(inputNewName)
+
+                    inputNewName.addEventListener("keypress", event => {
+                        console.log(inputNewName.fo)
+                        if (event.key === 'Enter' | event.key === 'Escape') {
+                            inputNewName.type = "hidden";
+                        }
+                        // alex
+                    })
+                    inputNewName.addEventListener("focusout", event => {
+                        const nombre2 = inputNewName.value
+                        if (nombre !== nombre2) {
+                            renFolImg(nombre, nombre2)
+                        }
+                        inputNewName.type = "hidden";
+                    })
+
+
+                })
+            }
+
         })
+}
+
+
+function renFolImg(nombre, nombre2) {
+    console.log(nombre)
+    console.log(nombre2)
+    fetch(`/rename?name=${nombre}&newName=${nombre2}`)
+        .then(res => res.text())
+        .then(response => {
+            let json = JSON.parse(response);
+            if (json.response = true) {
+                location.reload();
+            }
+        })
+    loadSeccionCarpetasImagenes("");
 }
 
 function uriChangePath(event) {
     window.location.pathname = event.target.id;
 }
 
-function delFolImg(event) {
 
-    let confirma = confirm(`¿Confirma que desea eliminar el elemento?"${event.target.id}"
-                    Aceptar o Cancelar.`);
-    if (confirma) {
-        fetch("/delImgOrDirectory?path=" + event.target.value)
-            .then(res => res.text())
-            .then(response => {
-                let json = JSON.parse(response);
-                respMsg = document.getElementById("respMsg");
-                if (json.respuesta === "ok") {
-                    respMsg.innerHTML =
-                        `<div id="cajaDel" role="alert" style="background: rgb(68, 236, 54)">
-            <p id="respuestaDel">${json.delMsg}</p>
-            <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
-            </div > `;
-                    document.getElementById(event.target.id).remove();
-                } else {
-                    respMsg.innerHTML =
-                        `<div id="cajaDel" role="alert" style="background: rgba(255,0,0,0.5);" >
-            <p id="respuestaDel">${json.delMsg}</p>
-            <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
-            </div > `;
-                }
-            })
-    }
-}
-
-function renFolImg(event) {
-
-    let boton = event.target;
-    inputNewName = document.getElementById("newName" + boton.value);
-    if (boton.innerHTML == "Aceptar") {
-        nombre2 = inputNewName.value;
-        if (nombre !== nombre2) {
-            fetch(`/rename?name=${nombre}&newName=${nombre2}`)
-                .then(res => res.text())
-                .then(response => {
-                    let json = JSON.parse(response);
-                    if (json.response = true) {
-                        location.reload();
-                    }
-                })
-        }
-        inputNewName.type = 'hidden';
-        boton.innerHTML = "Renombrar";
-    } else {
-        nombre = inputNewName.value;
-        inputNewName.type = 'visible';
-        boton.innerHTML = "Aceptar";
-    }
-}
 
 // PARA OBTENER LA INFORMACIÓN DE UNA IMAGEN.
 let infoImgBox = null;
@@ -398,11 +406,11 @@ function getInfoImg(path, urlImg) {
         <thead><th>PROPIEDAD</th><th>VALOR</th></thead >
         <tbody>
         <tr>
-        <td>HEIGHT</td>
+        <td>ALTURA</td>
         <td>${json.height}</td>
         </tr>
         <tr>
-        <td>WIDTH</td>
+        <td>ANCHO</td>
         <td>${json.width}</td>
         </tr>
         <tr>
@@ -437,14 +445,15 @@ function menuNewImages(event) {
 
     if (window.location.pathname === "/galeria") {
         alert("En esta ubicación, no puede subir imágenes.")
-    } else {
-        const node = document.createElement("div");
-        node.setAttribute("id", "newImage-container");
-        node.setAttribute("class", "ventana-emergente");
-        document.getElementById("nav").appendChild(node);
+        return;
+    }
+    const node = document.createElement("div");
+    node.setAttribute("id", "newImage-container");
+    node.setAttribute("class", "ventana-emergente");
+    document.getElementById("header-container").appendChild(node);
 
-        mkdircontainer = document.getElementById("newImage-container");
-        mkdircontainer.innerHTML = `<div id="newImgSection" class="contenido-emergente">
+    mkdircontainer = document.getElementById("newImage-container");
+    mkdircontainer.innerHTML = `<div id="newImgSection" class="contenido-emergente">
                 <h1>SUBIR IMÁGENES</h1>
                 <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*"multiple />
                 <button onclick="acceptNewImg()">ACEPTAR</button>
@@ -452,11 +461,11 @@ function menuNewImages(event) {
                 <div id="listaImagenes"></div>
             </div>`
 
-        document.getElementById("imgFile").addEventListener("change", event => {
-            imgFilesList = event.target.files;
-            showListImgSelected();
-        });
-    }
+    document.getElementById("imgFile").addEventListener("change", event => {
+        imgFilesList = event.target.files;
+        showListImgSelected();
+    });
+
 }
 
 
@@ -513,6 +522,186 @@ function cancelNewImg() {
 
 // FINAL MENÚ DEL BOTÓN  -- SUBIR IMÁGENES -- ####################################
 
+
+
+// INICIO MENÚ DEL BOTÓN  -- GESTIÓN IMÁGENES/DIR -- ####################################
+
+
+let mvDelDirFileList = [];
+
+function menuManageImgDir() {
+
+
+    if (window.location.pathname === "/galeria") {
+        alert("En esta ubicación, no puede mover carpetas.")
+        return;
+    }
+    const mvDirFileListCheckBox = document.getElementsByClassName("mvDirFile");
+    const mvDirFileContainer = document.getElementById("mvDirFileContainer");
+
+    if (mvDirFileContainer != null) {
+        return;
+    }
+
+    for (i = 0; i < mvDirFileListCheckBox.length; i++) {
+        mvDirFileListCheckBox[i].style.visibility = "visible";
+        mvDirFileListCheckBox[i].addEventListener("click", event => {
+            const estado = event.target.checked;
+
+            if (estado) {
+                mvDelDirFileList.push(event.target.id)
+            } else {
+
+                for (i = 0; i < mvDelDirFileList.length; i++) {
+                    if (event.target.id === mvDelDirFileList[i]) {
+                        mvDirFmvDelDirFileListileList.splice(i, 1);
+                    }
+                }
+            }
+        })
+    }
+    const nav = document.getElementById("nav");
+    nav.innerHTML +=
+        `<div id="mvDirFileContainer">
+            <div class="linea"></div>
+            <button onclick="confirmMvDirFile()">MOVER</button>
+            <button onclick="delFolImg(event)">ELIMINAR</button>
+            <button onclick="cancelMvDirFile()">CANCELAR</button>
+            </div>
+        </div>`
+    document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight + "px";
+}
+
+
+function confirmMvDirFile() {
+
+    if (mvDelDirFileList.length === 0 | mvDelDirFileList === null) {
+        alert("No ha seleccionado ningún archivo o carpeta para mover.")
+        return
+    }
+    document.getElementById("respMsg").innerHTML =
+        `<div id="editPathFolders" class="ventana-emergente" style="visibility: hidden">
+        <div id="editPathFolders" class="contenido-emergente">
+            <div id="newPathContainer"></div>
+     </div>`
+
+
+    const node = document.createElement("div");
+    node.setAttribute("id", "mvDirFile-container");
+    node.setAttribute("class", "ventana-emergente");
+    document.getElementById("mvDirFileContainer").appendChild(node);
+    document.getElementById("editPathFolders").style.visibility = "visible"
+    addNewPath("mvDirFile");
+    console.log(document.getElementById("newPathButton"))
+}
+
+function mvImgDirFunction() {
+    const newFolder = document.getElementById("absolutPath")
+    if (newFolder.value === "") {
+        alert("Debe seleccionar una nueva ubicación.")
+        newFolder.focus();
+        return
+    }
+    //CODIGO FETCH, RECORDAR TRABAJAAR CON EL RESULTADO DEL ARRAY, SI FUNCIONA TODO RESET, SI NO, NO.
+
+    let formData = new FormData();
+
+    formData.append("newFolder", newFolder.value);
+    formData.append("fileDirList", mvDelDirFileList);
+
+    const options = {
+        method: "POST",
+        body: formData
+    }
+
+    fetch("/mvDirFiles", options)
+        .then(res => res.text())
+        .then(response => {
+            const json = JSON.parse(response);
+            closeNewPathDiv();
+            cancelMvDirFile();
+            loadSeccionCarpetasImagenes("");
+
+            let listaErrores = "";
+
+            for (i = 0; i < json.errors.length; i++) {
+                console.log("ERRORES: " + json.errors[i])
+                listaErrores += `<li>${json.errors[i]}</li>`;
+            }
+
+            if (json.errors.length > 0) {
+                respMsg = document.getElementById("respMsg");
+                respMsg.innerHTML =
+                    `<div id="cajaDel" role="alert" style="background: rgba(255,0,0,0.5);" >
+                        <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
+                        <h3>LISTA DE ARCHIVOS QUE YA EXISTÍAN EN LA NUEVA UBICACIÓN.</h3>
+                        <ol>
+                            ${listaErrores}
+                        </ol>
+                   </div > `;
+            }
+        })
+
+    mvDelDirFileList = [];
+}
+
+function delFolImg() {
+
+    let confirma = confirm(`¿Confirma que desea eliminar los elementos seleccionados?`);
+    if (confirma) {
+
+        let formData = new FormData();
+        formData.append("list", mvDelDirFileList);
+
+        const options = {
+            method: "POST",
+            body: formData
+        }
+
+        fetch("/delImgOrDirectory", options)
+            .then(res => res.text())
+            .then(response => {
+                let json = JSON.parse(response);
+                respMsg = document.getElementById("respMsg");
+                if (json.respuesta === "ok") {
+                    respMsg.innerHTML =
+                        `<div id="cajaDel" role="alert" style="background: rgb(68, 236, 54)">
+            <p id="respuestaDel">${json.delMsg}</p>
+            <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
+            </div > `;
+                    mvDelDirFileList = [];
+                    cancelMvDirFile();
+                    loadSeccionCarpetasImagenes("");
+                } else {
+                    respMsg.innerHTML =
+                        `<div id="cajaDel" role="alert" style="background: rgba(255,0,0,0.5);" >
+            <p id="respuestaDel">${json.delMsg}</p>
+            <button id="respuestaDela" onclick="cerrarCajaDel()">X</button>
+            </div > `;
+                }
+            })
+    }
+}
+
+
+function cancelMvDirFile() {
+    document.getElementById("mvDirFileContainer").remove();
+    const mvDirFileListCheckBox = document.getElementsByClassName("mvDirFile");
+    for (i = 0; i < mvDirFileListCheckBox.length; i++) {
+        mvDirFileListCheckBox[i].style.visibility = "hidden";
+        mvDirFileListCheckBox[i].checked = false;
+    }
+    document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight + "px";
+    mvDelDirFileList = [];
+
+}
+
+// FINAL MENÚ DEL BOTÓN  -- GESTIÓN IMÁGENES/DIR -- ####################################
+
+
+
+
+
 //INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
 function userManagement() {
@@ -520,7 +709,7 @@ function userManagement() {
     const node = document.createElement("div");
     node.setAttribute("id", "userManagement-container");
     node.setAttribute("class", "ventana-emergente");
-    document.getElementById("nav").appendChild(node);
+    document.getElementById("header-container").appendChild(node);
     let getUserName;
     fetch(`/getAllUsersManagement`)
         .then(res => res.text())
@@ -642,8 +831,8 @@ function userManagement() {
                         .then(res => res.text()
                             .then(response => {
                                 if (actualUsername !== newUsername) {
-                                    // alert("Ha cambiado el nombre de usuario actual, vuelva a hacer login.")
-                                    // location.href = "/logout";
+                                    alert("Ha cambiado el nombre de usuario actual, vuelva a hacer login.")
+                                    location.href = "/logout";
                                 }
                             }))
                 })
@@ -794,10 +983,10 @@ function delUser(event) {
     }
 }
 
-//INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
+//FINAL MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
 //INICIO MENÚ DEL BOTÓN  -- LOGOUT -- ####################################
-function logout(){
+function logout() {
     location.href = "/logout";
 }
 //FINAL MENÚ DEL BOTÓN  -- LOGOUT -- ####################################

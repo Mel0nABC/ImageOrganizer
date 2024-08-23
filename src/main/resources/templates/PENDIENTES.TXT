@@ -1,17 +1,20 @@
-- Cuando se añada un nuevo directorio de imágenes, que vaya directo a /galeria, cuando se pulse cerrar "editar directorios", así actualizará las nuevas carpetas.
-      Si no se añade ninguno, que se quede en la actual ubicación.
-      Si se borra una carpeta y es en la que estaba, que vaya a /galeria.
+
+
+
 
 - Buscar cómo hacer resize a las imágenes para enviar al front y que ocupen menos.
--
+
+- Poder cambiar de directorio imágenes e incluso, otros directorios.
+
+      (se ha comenzado, hay que hacer algo, para que cuando se esté en proceso de selección de archivos o carpetasa
+      a mover, si se usa el filtrar por nombre, no desaparezca los checkbox)
+
+      * Incorporar drag&drop para subir fotos e cambiar directorio
 
 
 
 
-
-
-
-
+- Mostrar información del directorio actual, cantidad de archivos, mb que ocupan, etcétera.
 
 
       COSAS JPA:
