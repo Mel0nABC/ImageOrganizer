@@ -46,9 +46,10 @@ public class UserEntity {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleEntity> roles = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_path", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "path_id"))
-    private List<PathEntity> patchList = new ArrayList<>();
+    private Set<PathEntity> patchList = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -122,6 +123,4 @@ public class UserEntity {
                 + "]";
     }
 
-
-    
 }

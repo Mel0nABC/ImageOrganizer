@@ -1,19 +1,12 @@
 package com.example.WebLogin.persistence.entity;
 
-import org.hibernate.validator.constraints.UniqueElements;
+import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.boot.autoconfigure.cache.CacheType;
+
+import jakarta.persistence.*;
+import lombok.*;
 
 @Getter
 @Setter
@@ -21,11 +14,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "path")
+@Table(name = "path", uniqueConstraints = @UniqueConstraint(columnNames = "path_dir"))
 public class PathEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long id;
 
     @Column(name = "path_dir", nullable = false, updatable = false)
@@ -46,5 +40,4 @@ public class PathEntity {
     public void setPath_dir(String path_dir) {
         this.path_dir = path_dir;
     }
-
 }

@@ -2,7 +2,7 @@ package com.example.WebLogin.service;
 
 import com.example.WebLogin.persistence.entity.PathEntity;
 import com.example.WebLogin.persistence.entity.UserEntity;
-
+import com.example.WebLogin.persistence.repository.PathRepository;
 import com.example.WebLogin.persistence.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,13 +14,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserDetailServiceImpl implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PathRepository pathRepository;
     private static String ROOT = "root";
 
     /**
@@ -78,11 +82,21 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return userRepository.getUserByUsername(username);
     }
 
-    public List<PathEntity> getPathList(String username) {
+    public Set<PathEntity> getPathList(String username) {
         UserEntity userEntity = userRepository.findUserEntityByUsername(username).get();
-        List<PathEntity> pathList = new ArrayList<>();
+        Set<PathEntity> pathList = new HashSet<>();
         pathList = userEntity.getPatchList();
         return pathList;
+    }
+
+    public Set<PathEntity> getAllPathList() {
+        Iterable<UserEntity> listUserEntities = userRepository.findAll();
+        Set<PathEntity> listPathComplete = new HashSet<>();
+        Iterable<PathEntity> listadepatches = pathRepository.findAll();
+        listadepatches.forEach(path -> {
+            listPathComplete.add(path);
+        });
+        return listPathComplete;
     }
 
     public Boolean setUSerEntity(UserEntity user) {
@@ -101,6 +115,31 @@ public class UserDetailServiceImpl implements UserDetailsService {
             return false;
         }
         return true;
+    }
+
+    boolean pathUsado = false;
+
+    public void cleanPathDataBase() {
+        Iterable<PathEntity> allPathEntityDataBase = pathRepository.findAll();
+        Iterable<UserEntity> userListEntity = getAllUsers();
+
+        allPathEntityDataBase.forEach(path -> {
+            userListEntity.forEach(user -> {
+                Set<PathEntity> userPathList = user.getPatchList();
+                userPathList.forEach(userPath -> {
+                    if (path.getPath_dir().equals(userPath.getPath_dir())) {
+                        pathUsado = true;
+                    }
+                });
+            });
+
+            if (pathUsado) {
+                pathUsado = false;
+            } else {
+                pathRepository.delete(path);
+            }
+
+        });
     }
 
 }

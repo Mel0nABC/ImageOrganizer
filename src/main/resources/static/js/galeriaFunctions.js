@@ -1,11 +1,61 @@
 
+
+
+
+
+
 window.addEventListener("load", (event) => {
     loadSeccionCarpetasImagenes("");
     document.getElementById("filterForName").addEventListener("keyup", event => {
         loadSeccionCarpetasImagenes(event.target.value)
     })
-    document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight+20 + "px";
+
+    menuIco();
+
+    const observer = new ResizeObserver(function () {
+        document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight + 20 + "px";
+    });
+
+    const child = document.querySelector("nav");
+    observer.observe(child);
 });
+
+function menuIco() {
+    /* Para mantener un margin al nav automático, al estar fixed, a veces algun elemento puede varias.
+    *  En este caso, controlamor imgDirSection, que es dónde se previsualizan las imágenes.
+    */
+
+    icoMenu.addEventListener("click", event => {
+        let menuOpen = document.getElementById("menuContainer");
+        const icoMenu = document.getElementById("icoMenu");
+        if (!menuOpen) {
+            const menuDesplegable = document.getElementById("menuDesplegable");
+            const div = document.createElement("div")
+            div.setAttribute("id", "menuContainer");
+            menuDesplegable.append(div)
+            menuOpen = document.getElementById("menuContainer");
+            console.log(roleType + " - " + actualUsername)
+            menuOpen.innerHTML += `<div>
+            <p>Usuario: ${actualUsername}</p>
+            <p>ROL: ${roleType}</p>
+            </div>`
+            const btnLogout = document.createElement("button")
+            btnLogout.setAttribute("id", "btnLogout");
+            btnLogout.innerHTML = "LOGOUT";
+            btnLogout.setAttribute("onclick", "logout()")
+            div.append(btnLogout)
+            if (menuOpen) {
+                menuOpen.setAttribute('tabindex', '0');
+                btnLogout.focus();
+            }
+            btnLogout.addEventListener("focusout", event => {
+                const menuOpen = document.getElementById("menuContainer");
+                menuOpen.remove();
+            })
+        }
+
+    })
+}
 
 
 // CERRAR CAJA AVISO ELIMINACIÓN DIRECTORIO O ARCHIVO
@@ -18,7 +68,10 @@ function cerrarCajaDel() {
 // INICIO MENÚ DEL BOTÓN  -- BIBLIOTECAS -- ####################################
 // PARA GESTIONAR LOS DIRECTORIOS CONFIGURADOS.
 function editPathFolders() {
-    document.getElementById("header-container").innerHTML += `<div id="editPathFolders-container" class="ventana-emergente"></div>`;
+    const div = document.createElement("div");
+    div.setAttribute("id", "editPathFolders-container");
+    div.setAttribute("class", "ventana-emergente");
+    document.getElementById("header-container").appendChild(div);
     editpathcontainer = document.getElementById("editPathFolders-container");
 
     fetch(`/openConfigDirectory`)
@@ -38,22 +91,23 @@ function editPathFolders() {
             let html = `<div id="editPathFolders" class="contenido-emergente">
                                     <h1>CONFIGURACIÓN DE BIBLIOTECAS</h1>
                                         <div class="menu-container">
-                                            <button onclick="addNewPath()" class="boton">Agregar nueva ruta</button>
-                                            <button onclick="closeEditPathFolders()" class="boton">CERRAR</button>
+                                            <button onclick="addNewPath()" class="boton">AGREGAR</button>
+                                            <button onclick="closeEditPathFolders()" class="boton">CANCELAR</button>
                                         </div>
-                                        
-                                    <section>
-                                        <table>
-                                            <thead>
-                                                <th>RUTA</th>
-                                                <th>ACCION</th>
-                                            </thead>
+                                        <div id="pathFoldSection">
+                                            <section>
+                                                <table>
+                                                    <thead>
+                                                        <th>RUTA</th>
+                                                        <th>ACCION</th>
+                                                    </thead>
 
-                                            <tbody>
-                                                    ${tbodyTr}
-                                            </tbody>
-                                        </table>
-                                    </section>
+                                                    <tbody>
+                                                            ${tbodyTr}
+                                                    </tbody>
+                                                </table>
+                                            </section>
+                                        </div>
                                     <div id="newPathContainer"></div>
                     </div>`;
             editpathcontainer.innerHTML = html;
@@ -90,8 +144,8 @@ function addNewPath(typeFunction) {
             document.getElementById("newPathContainer").innerHTML = `
                         <div id="newPathDiv" class="newPathDiv">
                             <div class="newPathNav">
-                                <button onclick="closeNewPathDiv()">CANCELAR</button>
                                 <button id="newPathButton" onclick="${buttonTypeAceptar}">ACEPTAR</button>
+                                <button onclick="closeNewPathDiv()">CANCELAR</button>
                             </div>
                             <div>
                                 <input id="absolutPath" type="text" value=""/>
@@ -151,11 +205,6 @@ let pathStatus = false;
 
 function confirmNewPath() {
 
-    if (document.getElementById("dirRaizTrueFalse").value === "false") {
-        alert("No se pueden añadir directorios raiz. Debe seleccionar una subcarpeta.")
-        return;
-    }
-
     let newFolderPath = document.getElementById("absolutPath").value;
     const formData = new FormData();
     formData.append("newFolderParh", newFolderPath)
@@ -178,12 +227,6 @@ function confirmNewPath() {
 }
 
 function actionDirFunc(event) {
-
-    if (event.target.id !== "raiz") {
-        document.getElementById("dirRaizTrueFalse").value = "true";
-    } else {
-        document.getElementById("dirRaizTrueFalse").value = "false";
-    }
     let path = event.target.value;
     const formData = new FormData();
     formData.append("path", path);
@@ -228,7 +271,7 @@ function menuMkDir() {
                             <h1>CREAR NUEVA CARPETA</h1>
                             <input id="dirNameNewPath" type="text" />
                             <button onclick="acceptNewFolder()">ACEPTAR</button>
-                            <button onclick="cancelNewFolder()">CERRAR</button>
+                            <button onclick="cancelNewFolder()">CANCELAR</button>
                             <p id="msgNewFolder"></p>
                         </div>`
     document.getElementById("dirNameNewPath").focus();
@@ -259,8 +302,12 @@ function cancelNewFolder() {
 }
 // FINAL MENÚ DEL BOTÓN  -- NUEVA CARPETA -- ####################################
 
-
 // INICIO ZONA CARPETAS E CARGA IMÁGENES -- ####################################
+
+
+let actualUsername;
+let roleType;
+
 function loadSeccionCarpetasImagenes(filter) {
     var pathname = window.location.pathname;
     console.log("FILTER --> " + filter)
@@ -268,6 +315,8 @@ function loadSeccionCarpetasImagenes(filter) {
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
+            actualUsername = json.username;
+            roleType = json.roleType;
             let verifyEmptyFolder = json.folderStatus;
             let emptyFolder = "";
             let dirSection = "";
@@ -281,7 +330,7 @@ function loadSeccionCarpetasImagenes(filter) {
                             <div>
                                 <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
                             </div>
-                            <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/Album-PNG.png"></a>
+                            <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/carpeta.png"></a>
                             <p id="showName${json.dirList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
 
                     if (json.uriUbicacion.length > 1) {
@@ -294,17 +343,18 @@ function loadSeccionCarpetasImagenes(filter) {
                 }
                 //AÑADIR ARCHIVOS
                 for (i = 0; i < json.fileList.length; i++) {
+
+
                     fileSection += `<article id="${json.fileList[i].name}" class="imgContainer" name="${json.fileList[i].name}">
                         <div>
                             <input id="${json.fileList[i].name}" type="checkbox" class="mvDirFile"/>
                         </div>
                         <a onclick="getInfoImg('${json.fileList[i].name}','${json.fileList[i].src}')">
-                            <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}">
+                             <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}">
                         </a>
                         <p id="showName${json.fileList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.fileList[i].name}</p>
-                        <input id="newName${json.fileList[i].name}" name="newName" value="${json.fileList[i].name}" type="hidden" />
                         </article>`
-                    // <button value="${json.fileList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>
+
                 }
 
             }
@@ -313,7 +363,8 @@ function loadSeccionCarpetasImagenes(filter) {
             for (i = 0; i < json.uriUbicacion.length; i++) {
                 uriUbica += `<a onclick="uriChangePath(event)" id="${json.uriUbicacion[i].uriTotal}" name="uriUbicaList" class="pointer" style="display: inline;">${json.uriUbicacion[i].carpeta}</a>`;
             }
-            document.getElementById("rutaPath").innerHTML = "UBICACIÓN:</br> " + uriUbica
+            const ubicaText = "<div><p>UBICACIÓN: </p></div>"
+            document.getElementById("rutaPath").innerHTML = `${ubicaText} <div> ${uriUbica} </div>`;
             let uriUbicaList = document.getElementsByName("uriUbicaList");
 
             let html =
@@ -386,6 +437,12 @@ function uriChangePath(event) {
 let infoImgBox = null;
 
 function getInfoImg(path, urlImg) {
+    // console.log(path + " - " + urlImg)
+    // const link = document.createElement("a");
+    // link.setAttribute('href', urlImg);
+    // link.setAttribute('download', urlImg);
+    // link.click();
+
     const options = {
         method: 'GET'
     };
@@ -454,61 +511,83 @@ function menuNewImages(event) {
 
     mkdircontainer = document.getElementById("newImage-container");
     mkdircontainer.innerHTML = `<div id="newImgSection" class="contenido-emergente">
-                <h1>SUBIR IMÁGENES</h1>
-                <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*"multiple />
-                <button onclick="acceptNewImg()">ACEPTAR</button>
-                <button onclick="cancelNewImg()">CALCELAR</button>
-                <div id="listaImagenes"></div>
+                <div id="menuNewImgSection">
+                    <h1>SUBIR IMÁGENES</h1>
+                    <input id="imgFile" name="imgFile" type="file" value="Subir imagen" formmethod="post" accept="image/*"multiple />
+                    <button onclick="acceptNewImg()">ACEPTAR</button>
+                    <button onclick="cancelNewImg()">CALCELAR</button>
+                </div>
+                <div id="listaImagenes">
             </div>`
 
     document.getElementById("imgFile").addEventListener("change", event => {
         imgFilesList = event.target.files;
-        showListImgSelected();
+
+        for (i = 0; i < imgFilesList.length; i++) {
+            const imgPreviewFile = document.createElement("img")
+            imgPreviewFile.className = "pointer"
+            imgPreviewFile.id = imgFilesList[i].name
+
+            document.getElementById("listaImagenes").appendChild(imgPreviewFile)
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                imgPreviewFile.src = e.target.result;
+            }
+
+            reader.readAsDataURL(imgFilesList[i]);
+
+            imgPreviewFile.addEventListener("click", event => {
+                rmImgFromList(event);
+            })
+        }
     });
-
-}
-
-
-function showListImgSelected() {
-    let htmlListaImagenes = `<p style="margin-left: 40px;">Click en la imágenes, para eliminarla.</p>`;
-    htmlListaImagenes += `<ul>`;
-    for (i = 0; i < imgFilesList.length; i++) {
-        htmlListaImagenes += `<li><button onclick="rmImgFromList(event)" class="botonList">${imgFilesList[i].name}</button></li>`;
-    }
-    htmlListaImagenes += `</ul>`;
-    document.getElementById("listaImagenes").innerHTML = htmlListaImagenes;
 }
 
 function rmImgFromList(event) {
     let newFileList = Array.from(imgFilesList);
     for (i = 0; i < imgFilesList.length; i++) {
-        if (imgFilesList[i].name === event.target.innerHTML) {
+        if (imgFilesList[i].name === event.target.id) {
             newFileList.splice(i, 1);
         }
     }
     imgFilesList = newFileList;
-    imgFilesList.val = "22";
-    showListImgSelected();
+    event.target.remove();
 }
 
 function acceptNewImg() {
     if (imgFilesList !== null && imgFilesList.length > 0) {
         const inputImgList = document.getElementById("imgFile")
         const formData = new FormData();
-
+        const actualImgsArt = document.getElementsByTagName("article")
+        let repeatImgName = false;
         for (i = 0; i < imgFilesList.length; i++) {
+            for (j = 0; j < actualImgsArt.length; j++) {
+                const img = actualImgsArt[j].querySelector("img");
+                if (imgFilesList[i].name === img.id) {
+                    repeatImgName = true;
+                    alert("El archivo " + img.id + " ya existe en la ubicación de destino.")
+                    break;
+                }
+            }
+            if (repeatImgName) break;
             formData.append("inputImgList", imgFilesList[i]);
         }
-
-        fetch('/uploadImg', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.text())
-            .then(response => {
-                loadSeccionCarpetasImagenes("");
-                cancelNewImg();
+        if (!repeatImgName) {
+            uploadingImg();
+            fetch('/uploadImg', {
+                method: 'POST',
+                body: formData
             })
+                .then(res => res.text())
+                .then(response => {
+                    imgFilesList = null;
+                    cancelNewImg();
+                    finishUploadImg()
+                    loadSeccionCarpetasImagenes("");
+
+                })
+        }
 
     } else {
         alert("Debe añadir algún archivo antes de aceptar.")
@@ -517,6 +596,24 @@ function acceptNewImg() {
 
 function cancelNewImg() {
     document.getElementById("newImage-container").remove();
+}
+
+
+
+function uploadingImg() {
+
+    document.getElementById("respMsg").innerHTML =
+        `<div id="uploadingImg-container" class="ventana-emergente">
+            <div id="uploadingImg" class="contenido-emergente">
+            <span class="loader"></span>
+            </div>
+        </div>`
+
+}
+
+function finishUploadImg() {
+    document.getElementById("uploadingImg-container").remove();
+    console.log("remove")
 }
 
 
@@ -570,6 +667,7 @@ function menuManageImgDir() {
             </div>
         </div>`
     document.getElementById("imgDirSection").style.marginTop = nav.offsetHeight + "px";
+    menuIco();
 }
 
 
@@ -705,7 +803,7 @@ function cancelMvDirFile() {
 //INICIO MENÚ DEL BOTÓN  -- GESTIÓN USUARIOS -- ####################################
 
 function userManagement() {
-    let actualUsername;
+
     const node = document.createElement("div");
     node.setAttribute("id", "userManagement-container");
     node.setAttribute("class", "ventana-emergente");
@@ -717,7 +815,6 @@ function userManagement() {
 
             let json = JSON.parse(response);
 
-            actualUsername = json.username;
             let userInfo = '';
             for (i = 0; i < json.userList.length; i++) {
                 // for(a = 0; a < json.userList.roles.length)
@@ -794,25 +891,60 @@ function userManagement() {
             userManaContainer = document.getElementById("userManagement-container");
             userManaContainer.innerHTML = `<div id="userManaContainer" class="contenido-emergente">
                                     <h1>GESTIÓN DE USUARIOS</h1>
-                                    <button onclick="newUserManagement()">NUEVO USUARIO</button>
-                                    <button onclick="cancelUserManagement()">CERRAR</button>
+                                    <div>
+                                        <button onclick="newUserManagement()">NUEVO USUARIO</button>
+                                        <button onclick="cancelUserManagement()">CANCELAR</button>
+                                    </div>
                                     ${htmlTable}
                                 </div>`
         })
         .then(final => {
-            let newUsername;
             const rows = document.getElementsByName("trUser");
             for (i = 0; i < rows.length; i++) {
-
+                let userActual = false;
                 rows[i].addEventListener("click", event => {
                     const tr = event.target.closest("tr");
                     actualUsername: tr.querySelector("#username").value
+                    undoUsername = tr.querySelector("#username").value;
+                    let clickUserGet = event.target.value;
+                    if (actualUsername === clickUserGet) {
+                        userActual = true;
+                        console.log("USUARIO ACTUAL. " + actualUsername + " - " + clickUserGet)
+                    } else {
+                        console.log("USUARIO NO ACTUAL.")
+                        userActual = false;
+                    }
                 })
 
-
+                const trList = document.getElementsByName("trUser");
                 rows[i].addEventListener("change", event => {
+
                     const tr = event.target.closest("tr");
-                    newUsername = tr.querySelector("#username").value
+                    let newUsername = tr.querySelector("#username").value
+                    let userAlreadyExist = false;
+                    console.log("UNDO AL PRINCIPIO: " + undoUsername)
+                    console.log("NUEVO USUARIO: " + newUsername)
+
+                    trList.forEach(event => {
+                        console.log(event.querySelector("#username").value)
+                        let usernameFromList = event.querySelector("#username").name;
+                        console.log("COMPARANDO USUARIOS -> " + newUsername + " - " + usernameFromList)
+                        if (newUsername === usernameFromList) {
+                            userAlreadyExist = true;
+                        }
+                    })
+
+                    if (userAlreadyExist) {
+                        alert("El nombre de usuario que ha elegido, ya existe. Elija otro.")
+                        userManagement();
+                        return false;
+                    }
+
+                    if(!confirm(`¿Está seguro de cambiar el nombre de usuario de ${undoUsername} a ${newUsername}?`)){
+                        userManagement();
+                        return false;
+                    }
+
                     let formData = JSON.stringify({
                         id: tr.id,
                         username: tr.querySelector("#username").value,
@@ -826,15 +958,17 @@ function userManagement() {
                         method: 'POST',
                         body: formData
                     };
-
                     fetch(`/editUser`, options)
                         .then(res => res.text()
                             .then(response => {
-                                if (actualUsername !== newUsername) {
+                                if (userActual) {
                                     alert("Ha cambiado el nombre de usuario actual, vuelva a hacer login.")
                                     location.href = "/logout";
+                                }else{
+                                    userManagement();
                                 }
                             }))
+
                 })
             }
 
@@ -864,8 +998,8 @@ function newUserManagement() {
     document.getElementById("nav").appendChild(node);
     const newUser_container = document.getElementById("newUser-Container");
     newUser_container.innerHTML = `<div id="newUserContainer" class="contenido-emergente">
-                                        <button onclick="newUserCancel(event)">CANCELAR</button>
                                         <button onclick="newUserConfirm(event)">ACEPTAR</button>
+                                        <button onclick="newUserCancel(event)">CANCELAR</button>
                                         <table class="tableUSerManagement">
                                                 <thead>
                                                     <tr>

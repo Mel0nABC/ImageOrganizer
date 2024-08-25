@@ -23,16 +23,19 @@
                     <button onclick="menuNewImages()">SUBIR IMÁGENES</button>
                     <button onclick="menuManageImgDir()">GESTIÓN IMÁGENES/DIR</button>
                     <button th:if="${roleType == 'ADMIN'}" onclick="userManagement()">GESTIÓN USUARIOS</button>
-                    <button onclick="logout()">LOGOUT</button>
                 </div>
 
                 <div id="filterForName-container">
                     <label>BUSCAR:</label>
                     <input id="filterForName" type="text" />
                 </div>
-                <div id="userInfo">
-                    <p th:text="'Usuario: '+${username}"></p>
-                    <p th:text="'Rol: '+${roleType}"></p>
+
+                <div id="menuDesplegable">
+                    <div id="icoMenu">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
                 </div>
             </div>
 

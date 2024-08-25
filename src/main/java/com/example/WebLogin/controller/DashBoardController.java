@@ -3,7 +3,6 @@ package com.example.WebLogin.controller;
 import com.example.WebLogin.filesControl.GestorArchivosCarpetas;
 import com.example.WebLogin.otherClasses.DirFilePathClass;
 import com.example.WebLogin.otherClasses.GetImageProperties;
-import com.example.WebLogin.otherClasses.GetRoles;
 import com.example.WebLogin.otherClasses.ImageProperties;
 import com.example.WebLogin.otherClasses.UriLinks;
 import com.example.WebLogin.persistence.entity.PathEntity;
@@ -12,6 +11,7 @@ import com.example.WebLogin.persistence.entity.RoleEnum;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.persistence.repository.UserRepository;
 import com.example.WebLogin.service.UserDetailServiceImpl;
+import com.example.WebLogin.service.WatchingDirectory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +35,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.*;
 import java.net.URLDecoder;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,6 +49,8 @@ public class DashBoardController {
     private String SEPARADOR = File.separator;
     private Authentication authentication;
     private UserDetailServiceImpl userDetailsService;
+    @Autowired
+    private WatchingDirectory watchingDirectory;
     private static String actualDirectory = "";
     private static UserEntity actualUser;
     private ObjectMapper mapper = new ObjectMapper();
@@ -75,12 +76,10 @@ public class DashBoardController {
         this.username = authentication.getName();
         actualUser = userDetailsService.getUserByUsername(username);
         getRoleType(model);
-
         return "dashboard";
     }
 
     public void getRoleType(Model model) {
-
         // Obtenemos el rol del usuario y lo enviamos al DOM.
         String roleType = actualUser.getRoles().stream()
                 .map(RoleEntity::getRoleEnum)
@@ -367,6 +366,8 @@ public class DashBoardController {
         return json;
     }
 
+    private boolean noExistPath = true;
+
     /**
      * Para guardar una nueva biblioteca en la base de datos.
      * 
@@ -376,30 +377,50 @@ public class DashBoardController {
     @PostMapping("/confirmNewPath")
     @ResponseBody
     public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
+
         if (!new File(folderPath).exists()) {
             return false;
         }
 
-        File[] listaDirectorios = getPathList(username);
-        List<PathEntity> pathList = new ArrayList<>();
+        UserEntity user = userDetailsService.getUserByUsername(this.username);
+        Set<PathEntity> listaDirectorios = user.getPatchList();
         PathEntity newPath;
 
-        for (File f : listaDirectorios) {
-            if (f.getAbsolutePath().equals(folderPath)) {
+        // Comprobamos que el usuario tiene ya asignado ese directorio (no debería)
+
+        for (PathEntity path : listaDirectorios) {
+            if (path.getPath_dir().equals(folderPath)) {
                 return false;
             }
-            newPath = new PathEntity();
-            newPath.setPath_dir(f.getAbsolutePath());
-            pathList.add(newPath);
         }
 
-        newPath = new PathEntity();
-        newPath.setPath_dir(folderPath);
-        pathList.add(newPath);
+        Set<PathEntity> pathList = user.getPatchList();
+        Set<PathEntity> completePathList = userDetailsService.getAllPathList();
 
-        UserEntity user = userDetailsService.getUserByUsername(username);
-        user.setPatchList(pathList);
+        if (completePathList.size() == 0) {
+            newPath = new PathEntity();
+            newPath.setPath_dir(folderPath);
+            pathList.add(newPath);
+            user.setPatchList(pathList);
+        }
 
+        if (completePathList.size() > 0) {
+            completePathList.forEach(path -> {
+
+                if (path.getPath_dir().equals(folderPath)) {
+                    noExistPath = false;
+                    pathList.add(path);
+                }
+            });
+
+            if (noExistPath) {
+                newPath = new PathEntity();
+                newPath.setPath_dir(folderPath);
+                pathList.add(newPath);
+            }
+
+            user.setPatchList(pathList);
+        }
         if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
@@ -414,14 +435,12 @@ public class DashBoardController {
      */
     @PostMapping("/delDirectory")
     @ResponseBody
-    public Boolean delDirectory(@RequestParam("path") String path) {
-        File[] pathList = getPathList(username);
-        List<PathEntity> resultPathList = new ArrayList<>();
-        for (File f : pathList) {
-            if (!f.getAbsolutePath().equals(path)) {
-                PathEntity newPath = new PathEntity();
-                newPath.setPath_dir(f.getAbsolutePath());
-                resultPathList.add(newPath);
+    public Boolean delDirectory(@RequestParam("path") String pathToDel) {
+        Set<PathEntity> pathList = userDetailsService.getPathList(username);
+        Set<PathEntity> resultPathList = new HashSet<>();
+        for (PathEntity path : pathList) {
+            if (!path.getPath_dir().equals(pathToDel)) {
+                resultPathList.add(path);
             }
         }
 
@@ -430,6 +449,7 @@ public class DashBoardController {
         if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
+        userDetailsService.cleanPathDataBase();
         return true;
     }
 
@@ -578,8 +598,14 @@ public class DashBoardController {
                     uriUbicacion.add(new UriLinks("/" + uriUbicacionTemp[i], resultado));
                 }
             }
+
+            String roleType = actualUser.getRoles().stream()
+                    .map(RoleEntity::getRoleEnum)
+                    .findFirst()
+                    .orElse(null).toString();
             actualUser = userDetailsService.getUserByUsername(username);
             json.put("username", this.username);
+            json.putPOJO("roleType", roleType);
             json.put("uri", uriDecoder(request.getRequestURI()));
             json.putPOJO("uriUbicacion", uriUbicacion);
             json.putPOJO("fileList", fileList);
@@ -690,11 +716,6 @@ public class DashBoardController {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-        if (userChanges.getUsername().equals(actualUser.getUsername())) {
-            System.out.println("EL NOMBRE DE USUARIO ACTUAL, HA CAMBIADO.");
-            // return "redirect:/logout";
-        }
     }
 
     /**
@@ -766,10 +787,13 @@ public class DashBoardController {
      * @return
      */
     public File[] getPathList(String username) {
-        List<PathEntity> listPath = userDetailsService.getPathList(username);
+
+        Set<PathEntity> listPath = userDetailsService.getPathList(username);
         File[] filesDirList = new File[listPath.size()];
-        for (int i = 0; i < listPath.size(); i++) {
-            filesDirList[i] = new File(listPath.get(i).getPath_dir());
+        int index = 0;
+        for (PathEntity path : listPath) {
+            filesDirList[index] = new File(path.getPath_dir());
+            index++;
         }
         return filesDirList;
     }

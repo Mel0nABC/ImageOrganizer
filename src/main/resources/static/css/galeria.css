@@ -14,33 +14,6 @@ body {
   border-color: #6c757d;
 }
 
-button {
-  display: inline-block;
-  justify-content: center;
-  color: #ffffff;
-  background-color: #bd8307;
-  text-align: center;
-  white-space: nowrap;
-  user-select: none;
-  border: 1px solid transparent;
-  font-size: 0.9rem;
-  border-radius: .25rem;
-  margin-top: 10px;
-}
-
-#btnsAcciones p {
-  display: inline-block;
-  color: #bd8307;
-}
-
-button:hover {
-  background-color: #463002;
-}
-
-header {
-  justify-content: center;
-}
-
 nav {
   text-align: center;
   left: 8px;
@@ -54,52 +27,122 @@ nav {
   padding: 10px;
 }
 
-#btnsAcciones {
-  margin-left: 20px;
-  margin-right: 20px;
-}
 
 
 #botonesNav {
-  display: flex;
+  display: inline-block;
   justify-content: center;
+  margin: auto auto;
+  width: 100%;
 }
 
 #rutaPath {
-  position: absolute;
-  left: 20px;
+  display: inline-block;
+  justify-content: center;
   color: orange;
-  /* font-family: 'Courier New', Courier, monospace, Cochin, Georgia, Times, 'Times New Roman', serif; */
   font-family: Arial, Helvetica, sans-serif;
+}
+
+#rutaPath div {
+  display: inline-block;
+  justify-content: center;
+  margin: auto auto;
+  padding: 0;
+}
+
+#rutaPath div a {
+  padding: 0px;
+  margin: auto auto;
 }
 
 #rutaPath a:hover {
   color: rgb(89, 173, 89);
 }
 
-#filterForName-container {
-  margin-left: 80px;
-  text-align: center;
-  padding: 5px;
+#btnsAcciones {
+  margin-left: 20px;
+  display: inline-block;
+}
 
+
+#btnsAcciones p {
+  color: #bd8307;
+}
+
+button {
+  color: #ffffff;
+  background-color: #bd8307;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  border-radius: .25rem;
+  margin: 4px 0px;
+}
+
+button:hover {
+  background-color: #463002;
+}
+
+#filterForName-container {
+  margin-left: 20px;
+  display: inline-block;
+  text-align: center;
   label {
     color: orange;
     margin-right: 10px;
   }
 }
 
-
-#userInfo {
-  position: absolute;
-  right: 20px;
-  top: 5px;
-  color: orange;
-  text-align: left;
-  line-height: 10%;
+#menuDesplegable{
+  margin: 4px 0px 0px 20px;
+  display: inline-block;
+  justify-content: center;
 }
 
-#userInfo p {
-  display: block;
+#icoMenu {
+  div {
+    border: solid 1px orange;
+    width: 35px;
+    margin-bottom: 5px;
+  }
+}
+
+#icoMenu:hover {
+  div {
+    border: solid 1px gray;
+  }
+
+}
+
+#menuContainer{
+  outline: none;
+  position: absolute;
+  border: solid 1px white;
+  margin-top: 4px;
+  padding: 5px;
+  background-color: #2c2c2c;
+  text-align: left;
+}
+#menuContainer p{
+color: orange;
+margin: 0 0;
+font-size: 15px;
+}
+
+#btnLogout{
+  outline: none;
+}
+
+
+
+
+#mvDirFileContainer {
+  div {
+    margin-bottom: 10px;
+  }
+
 }
 
 section {
@@ -137,20 +180,23 @@ section img:hover {
   /* background: rgb(117, 8, 8); */
 }
 
-section button {}
-
-
 footer {
-  top: 50%;
+  padding: 5px;
   text-align: center;
-  padding: 50px;
-  border: solid 1px black;
+  border: solid 1px white;
+  color: orange;
+  border-radius: 5px;
+
+  p {
+    margin: 0;
+  }
 }
 
 #cajaDel {
   text-align: center;
   padding: 20px;
   margin: 30px 25%;
+  margin-top: 100px;
   border-radius: 20px;
 }
 
@@ -196,6 +242,10 @@ footer {
   word-break: break-all;
 }
 
+#infoImgBox-container{
+  /* height: 25%; */
+  width: 25%;
+}
 
 #infoImgBox button {
   position: absolute;
@@ -217,8 +267,44 @@ td {
   border: solid 1px;
 }
 
-
 /* SECCIÓN DE EDITAR DIRECTORIOS */
+
+#editPathFolders {
+  text-align: center;
+  color: orange;
+
+  h1 {
+    font-size: 25px;
+    text-align: center;
+  }
+}
+
+#mkdirsection {
+  h1 {
+    font-size: 25px;
+    text-align: center;
+    color: orange;
+  }
+
+}
+
+#userManaContainer {
+  h1 {
+    font-size: 25px;
+    text-align: center;
+    color: orange;
+  }
+
+  div {
+    text-align: center;
+  }
+}
+
+
+#seccionCarpetasImagenes-container h3 {
+  margin-top: 150px;
+  color: orange;
+}
 
 table,
 thead,
@@ -226,18 +312,22 @@ tbody,
 tr,
 td,
 th {
+  width: 100%;
   border: 1px solid;
 }
 
 table td,
 th {
+  width: 100%;
   padding: 10px;
 }
 
 table {
-  margin: 20px;
+  width: 100%;
+  margin: 20px auto;
   text-align: center;
   border-collapse: collapse;
+  color: white;
 }
 
 .menu-container {
@@ -250,7 +340,7 @@ table {
   margin: 20px;
 }
 
-.newPathDiv {
+#newPathDiv {
   box-sizing: border-box;
   border: solid 1px black;
   margin: 20px;
@@ -265,6 +355,11 @@ table {
 .newPathNav {
   display: flex;
   justify-content: center;
+
+}
+
+.newPathNav button {
+  margin: auto 10px;
 }
 
 .home-directory {
@@ -315,14 +410,34 @@ table {
   z-index: 3;
 }
 
+#newImgSection {
+  text-align: center;
+  display: inline-block;
+  justify-content: center;
+  margin-bottom: 20px;
 
-#listaImagenes {
-  text-align: left;
-  font-weight: bold;
+  h1 {
+    font-size: 25px;
+    color: orange;
+  }
 }
 
-#listaImagenes li {
-  list-style: none;
+#menuNewImgSection {
+  margin-bottom: 20px;
+
+}
+
+#imgFile {
+  display: inline-block;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+#listaImagenes img {
+  width: 100px;
+  height: 100px;
+  margin: 4px;
 }
 
 
@@ -339,13 +454,7 @@ li {
 }
 
 
-#imgFile {
-  display: none;
-  border: 1px solid #ccc;
-  display: inline-block;
-  padding: 6px 12px;
-  cursor: pointer;
-}
+
 
 .pointer {
   cursor: pointer;
@@ -360,3 +469,42 @@ li {
   padding: 0;
   margin: 20px auto 0 auto;
 }
+
+
+
+/** CARGANDO SUBIDA DE IMÁGENES **/
+
+.loader{
+  position: relative;
+  font-size: 48px;
+  letter-spacing: 2px;
+}
+.loader:before {
+  content: "Loading";
+  color: #fff;
+}
+.loader:after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background-color: #ff3d00;
+  border-radius: 50%;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  top: -70px;
+  animation: motion 3s ease-in-out infinite;
+}
+
+@keyframes motion {
+  0%, 50%, 100% {
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    transform: translateX(-100px) scale(0.3);
+  }
+  75% {
+    transform: translateX(100px) scale(0.3);
+  }
+}
+

@@ -1,9 +1,5 @@
 package com.example.WebLogin;
 
-import java.io.File;
-import java.lang.foreign.MemoryLayout.PathElement;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -18,12 +14,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import com.example.WebLogin.persistence.entity.PathEntity;
 import com.example.WebLogin.persistence.entity.PermissionEntity;
 import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.RoleEnum;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.persistence.repository.UserRepository;
+import com.example.WebLogin.service.WatchingDirectory;
 
 @SpringBootApplication
 public class WebLoginApplication {
@@ -34,6 +30,9 @@ public class WebLoginApplication {
 
     @Autowired
     Environment env;
+
+    @Autowired
+    private WatchingDirectory watchingDirectory;
 
     /**
      * Para especificar cuál será el aporte de data, en este caso, la bbdd de
@@ -51,13 +50,18 @@ public class WebLoginApplication {
         return dataSource;
     }
 
+    public void watcherDirectory(){
+        watchingDirectory.setInitialPath("/media/Almacenamiento/Download/webFotos");
+        /*Hay que opbtener todos los path de la tabla path y crear objetos con ella.
+        cuando se genere una  tabla nueva, hay que agregarla. Hay que limpiar las duplicadas
+        de la tabla. */ 
+
+    }
+
     @Bean
     CommandLineRunner init(UserRepository userRepository) {
         // System.out.println("CREAMOS USUARIOS Y ROLES");
         return args -> {
-
-
-
             Iterable<UserEntity> users = userRepository.findAll();
             Iterator<UserEntity> userList = users.iterator();
 
@@ -71,6 +75,8 @@ public class WebLoginApplication {
             if (contador == 0) {
                 userRepository.saveAll(List.of(createRoot()));
             }
+
+            watcherDirectory();
 
             // // Create PERMISSIONS
             // PermissionEntity createPermission = PermissionEntity.builder()
