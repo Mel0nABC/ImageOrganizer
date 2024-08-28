@@ -73,6 +73,7 @@ function editPathFolders() {
         .then(res => res.text())
         .then(response => {
             jsonPath = JSON.parse(response);
+            console.log(jsonPath)
 
             let tbodyTr = "";
             for (i = 0; i < jsonPath.configDirs.length; i++) {
@@ -116,7 +117,6 @@ function addNewPath(typeFunction) {
     let buttonTypeAceptar = "confirmNewPath()";
 
     if (typeFunction === "mvDirFile") {
-        console.log("VENTANA DE MOVER E ELIMINAR")
         buttonTypeAceptar = "mvImgDirFunction()"
     } else {
 
@@ -322,24 +322,21 @@ function loadSeccionCarpetasImagenes(filter) {
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
 
-                    if(json.dirList[i].name === "imagePreview"){
-                        break;
+                    if (json.dirList[i].name !== "imagePreview") {
+                        dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
+                        <div>
+                            <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
+                        </div>
+                        <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/carpeta.png"></a>
+                        <p id="showName${json.dirList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
+
+                        if (json.uriUbicacion.length > 1) {
+                            dirSection +=
+                                `   <input id="newName${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />`;
+                            // <button value="${json.dirList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>`
+                        }
+                        dirSection += ` </article>`;
                     }
-
-
-                    dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
-                            <div>
-                                <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
-                            </div>
-                            <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/carpeta.png"></a>
-                            <p id="showName${json.dirList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
-
-                    if (json.uriUbicacion.length > 1) {
-                        dirSection +=
-                            `   <input id="newName${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />`;
-                        // <button value="${json.dirList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>`
-                    }
-                    dirSection += ` </article>`;
 
                 }
                 //AÑADIR ARCHIVOS
@@ -416,7 +413,7 @@ function loadSeccionCarpetasImagenes(filter) {
 
 function renFolImg(nombre, nombre2) {
     console.log("NOMBRE: " + nombre)
-    console.log("NOMBRE2: "+nombre2)
+    console.log("NOMBRE2: " + nombre2)
     console.log("EN REN FOL IMG")
     fetch(`/rename?name=${nombre}&newName=${nombre2}`)
         .then(res => res.text())
@@ -700,7 +697,6 @@ function confirmMvDirFile() {
     document.getElementById("mvDirFileContainer").appendChild(node);
     document.getElementById("editPathFolders").style.visibility = "visible"
     addNewPath("mvDirFile");
-    console.log(document.getElementById("newPathButton"))
 }
 
 function mvImgDirFunction() {
@@ -932,27 +928,32 @@ function userManagement() {
                     const tr = event.target.closest("tr");
                     let newUsername = tr.querySelector("#username").value
                     let userAlreadyExist = false;
-                    console.log("UNDO AL PRINCIPIO: " + undoUsername)
-                    console.log("NUEVO USUARIO: " + newUsername)
 
                     trList.forEach(event => {
                         console.log(event.querySelector("#username").value)
                         let usernameFromList = event.querySelector("#username").name;
-                        console.log("COMPARANDO USUARIOS -> " + newUsername + " - " + usernameFromList)
+
                         if (newUsername === usernameFromList) {
                             userAlreadyExist = true;
                         }
                     })
 
-                    if (userAlreadyExist) {
-                        alert("El nombre de usuario que ha elegido, ya existe. Elija otro.")
-                        userManagement();
-                        return false;
-                    }
+                    if (tr.querySelector("select").type === "select-one") {
+                        if (!confirm(`¿Está seguro de cambiar la información del usuario?`)) {
+                            userManagement();
+                            return false;
+                        }
+                    }else{
+                        if (userAlreadyExist) {
+                            alert("El nombre de usuario que ha elegido, ya existe. Elija otro.")
+                            userManagement();
+                            return false;
+                        }
 
-                    if (!confirm(`¿Está seguro de cambiar el nombre de usuario de ${undoUsername} a ${newUsername}?`)) {
-                        userManagement();
-                        return false;
+                        if (!confirm(`¿Está seguro de cambiar el nombre de usuario de ${undoUsername} a ${newUsername}?`)) {
+                            userManagement();
+                            return false;
+                        }
                     }
 
                     let formData = JSON.stringify({

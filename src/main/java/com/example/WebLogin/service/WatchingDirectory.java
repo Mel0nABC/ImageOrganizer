@@ -69,7 +69,7 @@ public class WatchingDirectory {
         return listThreads;
     }
 
-    public static boolean stopThead(String path) {
+    public static boolean delThead(String path) {
         WatchingDirectoryThread wtStop = listWatchingObjects.get(path);
         if (wtStop != null) {
             wtStop.setStop(false);
@@ -86,7 +86,7 @@ public class WatchingDirectory {
     public static void stopThreads(String path) {
         for (Map.Entry<String, Thread> entry : listThreads.entrySet()) {
             if (path.startsWith(entry.getKey())) {
-                if (!stopThead(path)) {
+                if (!delThead(path)) {
                     System.out.println("Stop control directorio --> " + path);
                     break;
                 } else {

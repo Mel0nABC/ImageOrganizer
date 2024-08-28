@@ -9,6 +9,7 @@
 - Mostrar información del directorio actual, cantidad de archivos, mb que ocupan, etcétera.
 
 
+- ARREGLAR EL CAMBIO DE PROPIEDADES DE LOS USUARIOS.
 
 
       COSAS JPA:
