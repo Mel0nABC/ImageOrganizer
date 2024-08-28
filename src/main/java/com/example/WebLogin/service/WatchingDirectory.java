@@ -6,48 +6,58 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.example.WebLogin.persistence.entity.PathEntity;
+
 @Service
 public class WatchingDirectory {
 
     // Variable para el control de bucles de carpetas.
     private static Map<String, Thread> listThreads = new HashMap<String, Thread>();
     private static Map<String, WatchingDirectoryThread> listWatchingObjects = new HashMap<String, WatchingDirectoryThread>();
-    private static String initialPath = "";
+    private static String initialPath;
+    private UserDetailServiceImpl userDetailServiceImpl;
+    private static ImagePreviewService imagePreviewService;
 
-    // public WatchingDirectory(String initialPath){
-    // this.initialPath = initialPath;
-    // listPath(new File(initialPath));
-    // }
+    public WatchingDirectory(UserDetailServiceImpl userDetailServiceImpl,ImagePreviewService imagePreviewService) {
+        this.userDetailServiceImpl = userDetailServiceImpl;
+        this.imagePreviewService = imagePreviewService;
+
+        // Obtenemos la lista completa de paths de la tabla path y inicializamos control
+        // de directorios.
+        userDetailServiceImpl.getAllPathList().forEach(path -> {
+            setInitialPath(path.getPath_dir());
+        });
+    }
 
     public void setInitialPath(String initialPath) {
         this.initialPath = initialPath;
+        System.out.println("##################################################################################################");
+        System.out.println("## INICIAMOS WATCHDIRECTORY EN --> " + initialPath);
+        System.out.println("##################################################################################################");
         listPath(new File(initialPath));
-
     }
 
     public static void listPath(File path) {
         File[] dirList = path.listFiles();
 
-        if (initialPath.equals(path.getAbsolutePath())) {
-            newthread(path.getAbsolutePath());
-        }
-
-        if (dirList.length != 0) {
-            for (File f : dirList) {
-                if (f.isDirectory()) {
-                    listPath((f.getAbsoluteFile()));
-                    newthread(f.getAbsolutePath());
-                }
+        for (File f : dirList) {
+            if (f.isDirectory()) {
+                listPath((f.getAbsoluteFile()));
             }
-        } else {
-            // Cuando se crea un nuevo diectoio, con el sevicio ejecutándose.
-            newthread(path.getAbsolutePath());
+        }
+        newthread(path.getAbsolutePath());
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
     public static void newthread(String path) {
         WatchingDirectoryThread wtr = new WatchingDirectoryThread();
         wtr.setPath(path);
+        wtr.setImagePreviewService(imagePreviewService);
         Thread tr = new Thread(wtr);
         tr.setName(path);
         tr.start();
@@ -79,8 +89,8 @@ public class WatchingDirectory {
                 if (!stopThead(path)) {
                     System.out.println("Stop control directorio --> " + path);
                     break;
-                }else{
-                    System.out.println("Error al detener el thread, quizá era un archivo --> "+path);
+                } else {
+                    System.out.println("Error al detener el thread, quizá era un archivo --> " + path);
                 }
 
             }

@@ -90,12 +90,9 @@ public class UserDetailServiceImpl implements UserDetailsService {
     }
 
     public Set<PathEntity> getAllPathList() {
-        Iterable<UserEntity> listUserEntities = userRepository.findAll();
         Set<PathEntity> listPathComplete = new HashSet<>();
         Iterable<PathEntity> listadepatches = pathRepository.findAll();
-        listadepatches.forEach(path -> {
-            listPathComplete.add(path);
-        });
+        listadepatches.forEach(listPathComplete::add);
         return listPathComplete;
     }
 
@@ -141,5 +138,8 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
         });
     }
+
+
+    
 
 }

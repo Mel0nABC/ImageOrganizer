@@ -1,5 +1,6 @@
 package com.example.WebLogin;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -10,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -21,18 +24,26 @@ import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.persistence.repository.UserRepository;
 import com.example.WebLogin.service.WatchingDirectory;
 
+
 @SpringBootApplication
 public class WebLoginApplication {
+
+    @Autowired
+    Environment env;
 
     public static void main(String[] args) {
         SpringApplication.run(WebLoginApplication.class, args);
     }
 
-    @Autowired
-    Environment env;
+    // @Autowired
+    // private WatchingDirectory watchingDirectory;
+    private static final String SEPARADOR = File.separator;
+    private static final String HOME_DIR = System.getProperty("user.dir");
+    private static final String PATHLOGS = HOME_DIR + SEPARADOR + "logs";
+    private final File PATH = new File(PATHLOGS);
+    private static final File LOG_FILE_PATH = new File(PATHLOGS + SEPARADOR + "logs.log");
 
-    @Autowired
-    private WatchingDirectory watchingDirectory;
+
 
     /**
      * Para especificar cuál será el aporte de data, en este caso, la bbdd de
@@ -50,16 +61,9 @@ public class WebLoginApplication {
         return dataSource;
     }
 
-    public void watcherDirectory(){
-        watchingDirectory.setInitialPath("/media/Almacenamiento/Download/webFotos");
-        /*Hay que opbtener todos los path de la tabla path y crear objetos con ella.
-        cuando se genere una  tabla nueva, hay que agregarla. Hay que limpiar las duplicadas
-        de la tabla. */ 
-
-    }
-
     @Bean
     CommandLineRunner init(UserRepository userRepository) {
+
         // System.out.println("CREAMOS USUARIOS Y ROLES");
         return args -> {
             Iterable<UserEntity> users = userRepository.findAll();
@@ -76,7 +80,17 @@ public class WebLoginApplication {
                 userRepository.saveAll(List.of(createRoot()));
             }
 
-            watcherDirectory();
+            if (!LOG_FILE_PATH.exists()) {
+                PATH.mkdirs();
+                LOG_FILE_PATH.createNewFile();
+            }
+
+            // WatchingDirectory watchingDirectory = new WatchingDirectory();
+            // watchingDirectory.setInitialPath("/media/Almacenamiento/Download/webFotos");
+
+            // userDetailsService.getAllPathList().forEach(path -> {
+            // System.out.println(path.getPath_dir());
+            // });
 
             // // Create PERMISSIONS
             // PermissionEntity createPermission = PermissionEntity.builder()
@@ -215,6 +229,10 @@ public class WebLoginApplication {
                 .build();
 
         return root;
+    }
+
+    public static File getLogFilePath() {
+        return LOG_FILE_PATH;
     }
 
 }

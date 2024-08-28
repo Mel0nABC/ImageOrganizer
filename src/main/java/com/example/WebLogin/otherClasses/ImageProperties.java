@@ -2,7 +2,7 @@ package com.example.WebLogin.otherClasses;
 
 public class ImageProperties {
 
-    private int height, width, transparencia, type;
+    private int height, width, transparencia, type, size;
     private String rutaAbsoluta;
     
     public ImageProperties() {
@@ -52,6 +52,13 @@ public class ImageProperties {
     }
 
 
-    
+    public int getSize() {
+        return size;
+    }
+
+
+    public void setSize(int size) {
+        this.size = size;
+    }
 
 }

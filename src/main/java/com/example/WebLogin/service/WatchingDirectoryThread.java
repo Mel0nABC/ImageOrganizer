@@ -13,13 +13,15 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.time.format.DateTimeFormatter;
 import java.util.GregorianCalendar;
-import java.util.Map;
+
+import com.example.WebLogin.WebLoginApplication;
 
 public class WatchingDirectoryThread implements Runnable {
 
-    private Map<String, Thread> listaThreads;
+    private final String SEPARADOR = File.separator;
     private boolean watchServiceRun = true;
     private String path = "";
+    private ImagePreviewService imagePreviewService;
 
     @Override
     public void run() {
@@ -42,38 +44,46 @@ public class WatchingDirectoryThread implements Runnable {
 
             // Step 4: Poll the events in an infinite loop.
             System.out.println("Controlando directorio --> " + directorio);
+            String respuesta = "";
             while (watchServiceRun) {
                 try {
                     WatchKey key = watchService.take();
-                    String respuesta = "";
-                    for (WatchEvent<?> event : key.pollEvents()) {
 
+                    for (WatchEvent<?> event : key.pollEvents()) {
                         // Step 5: From the event context get the file name for each event.
                         // Step 6: Check the type for each event.
                         // Step 7: Perform actions for each type of event.
                         // Handle the specific event
 
+                        imagePreviewService.findImagesToResize(new File(path));
+
+                        File ruta = new File(path + SEPARADOR + event.context());
+
                         if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                            File newDir = new File(path + File.separator + event.context());
-                            if (newDir.isDirectory()) {
-                                System.out.println("VAMOS A CREAR NUEVO THREAD");
-                                WatchingDirectory.listPath(newDir);
+                            if (ruta.isDirectory()) {
+                                WatchingDirectory.listPath(ruta);
                             }
-                            respuesta = "File created,on --> " + path + " - " + event.context();
+                            respuesta = "CREATED ON --> " + path + SEPARADOR + event.context();
                             System.out.println(respuesta);
                         } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-                            File delDir = new File(path + File.separator + event.context());
-                            WatchingDirectory.stopThreads(delDir.getAbsolutePath());
 
-                            respuesta = "File deleted,on --> " + path + " - " + event.context();
-                            System.out.println(respuesta);
+                            // Si lo borrado, contiene el dir de previews, escanearemos el directorio padre
+                            // de previews en busca de diferencias (por si se borra una preview.)
+                            if (path.contains(ImagePreviewService.getDIR_PREVIEW())) {
+                                imagePreviewService.findImagesToResize(
+                                        new File(path.split(ImagePreviewService.getDIR_PREVIEW())[0]));
+                            }
+
+                            WatchingDirectory.stopThreads(ruta.getAbsolutePath());
+                            respuesta = "DELETED ON --> " + path + SEPARADOR + event.context();
+
                         } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                            respuesta = "File modified,on --> " + path + " - " + event.context();
+                            respuesta = "MODIFIES ON --> " + path + SEPARADOR + event.context();
                             System.out.println(respuesta);
                         }
-
+                        writeLog(respuesta);
                     }
-                    writeLog(respuesta);
+
                     // Step 8: Reset the watch key.
                     key.reset();
                 } catch (InterruptedException e) {
@@ -92,13 +102,11 @@ public class WatchingDirectoryThread implements Runnable {
 
     public void writeLog(String activity) {
         FileWriter escribe;
-        File fichero = new File("/media/Almacenamiento/Download/logs/log.txt");
+        File fichero = WebLoginApplication.getLogFilePath();
         String date = new GregorianCalendar().toZonedDateTime()
                 .format(DateTimeFormatter.ofPattern("d MMM uuuu - HH:mm:ss"));
         try {
-            if (!fichero.exists()) {
-                fichero.createNewFile();
-            }
+
             escribe = new FileWriter(fichero, true);
             BufferedWriter guarda = new BufferedWriter(escribe);
             guarda.append(date + " - " + activity);
@@ -125,6 +133,10 @@ public class WatchingDirectoryThread implements Runnable {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public void setImagePreviewService(ImagePreviewService imagePreviewService) {
+        this.imagePreviewService = imagePreviewService;
     }
 
 }

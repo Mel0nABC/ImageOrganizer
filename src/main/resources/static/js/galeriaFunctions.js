@@ -1,9 +1,4 @@
 
-
-
-
-
-
 window.addEventListener("load", (event) => {
     loadSeccionCarpetasImagenes("");
     document.getElementById("filterForName").addEventListener("keyup", event => {
@@ -289,9 +284,9 @@ function acceptNewFolder() {
                 msgNewFolder.innerHTML = json.respuesta
                 if (json.respuesta === "Carpeta creada satisfactoriamente.") {
                     loadSeccionCarpetasImagenes("");
-                    document.getElementById("dirNameNewPath").value = "";
                 }
             })
+        cancelNewFolder();
     } else {
         msgNewFolder.innerHTML = "Debe introducir algún nombre para el nuevo directorio";
     }
@@ -326,6 +321,12 @@ function loadSeccionCarpetasImagenes(filter) {
             } else {
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
+
+                    if(json.dirList[i].name === "imagePreview"){
+                        break;
+                    }
+
+
                     dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
                             <div>
                                 <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
@@ -344,15 +345,17 @@ function loadSeccionCarpetasImagenes(filter) {
                 //AÑADIR ARCHIVOS
                 for (i = 0; i < json.fileList.length; i++) {
 
+                    const fileName = json.fileList[i].name.replace("PREVI_", "");
 
                     fileSection += `<article id="${json.fileList[i].name}" class="imgContainer" name="${json.fileList[i].name}">
                         <div>
                             <input id="${json.fileList[i].name}" type="checkbox" class="mvDirFile"/>
                         </div>
                         <a onclick="getInfoImg('${json.fileList[i].name}','${json.fileList[i].src}')">
-                             <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}">
+                             <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}" href="${json.fileList[i].href}">
                         </a>
-                        <p id="showName${json.fileList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.fileList[i].name}</p>
+                        <p id="showName${fileName}" name="rename" class="pointer" title="Pulsa para renombrar.">${fileName}</p>
+                        <input id="${fileName}" name="${fileName}" value="${fileName}" type="hidden"/>
                         </article>`
 
                 }
@@ -377,6 +380,7 @@ function loadSeccionCarpetasImagenes(filter) {
             document.getElementById("seccionCarpetasImagenes").innerHTML = html;
 
             const renameP = document.getElementsByName("rename");
+
             for (i = 0; i < renameP.length; i++) {
                 renameP[i].addEventListener("click", event => {
                     const father = event.target.parentElement;
@@ -384,19 +388,16 @@ function loadSeccionCarpetasImagenes(filter) {
                     let nombre = inputNewName.value
                     inputNewName.type = "visible";
                     const end = inputNewName.value.length
-                    inputNewName.setSelectionRange(end, end);
+                    inputNewName.setSelectionRange(0, end - 4);
                     inputNewName.focus()
-
-                    console.log(father)
-                    console.log(inputNewName)
 
                     inputNewName.addEventListener("keypress", event => {
                         console.log(inputNewName.fo)
                         if (event.key === 'Enter' | event.key === 'Escape') {
                             inputNewName.type = "hidden";
                         }
-                        // alex
                     })
+
                     inputNewName.addEventListener("focusout", event => {
                         const nombre2 = inputNewName.value
                         if (nombre !== nombre2) {
@@ -414,8 +415,9 @@ function loadSeccionCarpetasImagenes(filter) {
 
 
 function renFolImg(nombre, nombre2) {
-    console.log(nombre)
-    console.log(nombre2)
+    console.log("NOMBRE: " + nombre)
+    console.log("NOMBRE2: "+nombre2)
+    console.log("EN REN FOL IMG")
     fetch(`/rename?name=${nombre}&newName=${nombre2}`)
         .then(res => res.text())
         .then(response => {
@@ -433,16 +435,19 @@ function uriChangePath(event) {
 
 
 
+function downOriginalImg(path, urlImg) {
+    console.log(path + " - " + urlImg)
+    const link = document.createElement("a");
+    link.setAttribute('href', urlImg);
+    link.setAttribute('download', urlImg);
+    link.click();
+}
+
+
 // PARA OBTENER LA INFORMACIÓN DE UNA IMAGEN.
 let infoImgBox = null;
 
 function getInfoImg(path, urlImg) {
-    // console.log(path + " - " + urlImg)
-    // const link = document.createElement("a");
-    // link.setAttribute('href', urlImg);
-    // link.setAttribute('download', urlImg);
-    // link.click();
-
     const options = {
         method: 'GET'
     };
@@ -457,8 +462,13 @@ function getInfoImg(path, urlImg) {
             infoImgBox = document.getElementById("infoImgBox");
             const json = JSON.parse(response);
 
+            console.log("PATH --> " + path)
+            console.log("URL IMG --> " + urlImg)
+
+
+
             infoImgBox.innerHTML += `<button onclick="cerrarBox()"" id="closeImgBox"> X</button>
-        <img src="` + urlImg + `"/>
+        <img src="${urlImg}" href="${urlImg}"/>
         <table id='infoImgTable'>
         <thead><th>PROPIEDAD</th><th>VALOR</th></thead >
         <tbody>
@@ -940,7 +950,7 @@ function userManagement() {
                         return false;
                     }
 
-                    if(!confirm(`¿Está seguro de cambiar el nombre de usuario de ${undoUsername} a ${newUsername}?`)){
+                    if (!confirm(`¿Está seguro de cambiar el nombre de usuario de ${undoUsername} a ${newUsername}?`)) {
                         userManagement();
                         return false;
                     }
@@ -964,7 +974,7 @@ function userManagement() {
                                 if (userActual) {
                                     alert("Ha cambiado el nombre de usuario actual, vuelva a hacer login.")
                                     location.href = "/logout";
-                                }else{
+                                } else {
                                     userManagement();
                                 }
                             }))

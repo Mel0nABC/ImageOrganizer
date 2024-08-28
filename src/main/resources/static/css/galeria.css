@@ -244,7 +244,7 @@ footer {
 
 #infoImgBox-container{
   /* height: 25%; */
-  width: 25%;
+  /* width: 50%; */
 }
 
 #infoImgBox button {
@@ -255,7 +255,7 @@ footer {
 
 #infoImgBox img {
   margin: 30px;
-  width: 50%;
+  /* width: 25%; */
 }
 
 #infoImgTable¡,

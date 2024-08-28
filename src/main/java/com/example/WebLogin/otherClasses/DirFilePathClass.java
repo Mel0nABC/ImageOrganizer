@@ -2,13 +2,14 @@ package com.example.WebLogin.otherClasses;
 
 public class DirFilePathClass {
 
-    private String id, name,src;
+    private String id, name,src,href;
     private boolean file;
 
-    public DirFilePathClass(String id, String name, String src) {
+    public DirFilePathClass(String id, String name, String src, String href) {
         this.id = id;
         this.name = name;
         this.src = src;
+        this.href = href;
     }
 
     public String getId() {
@@ -41,6 +42,14 @@ public class DirFilePathClass {
 
     public void setFile(boolean file) {
         this.file = file;
+    }
+
+    public String getHref() {
+        return href;
+    }
+
+    public void setHref(String href) {
+        this.href = href;
     }
   
 }

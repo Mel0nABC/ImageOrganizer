@@ -10,6 +10,7 @@ import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.RoleEnum;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.persistence.repository.UserRepository;
+import com.example.WebLogin.service.ImagePreviewService;
 import com.example.WebLogin.service.UserDetailServiceImpl;
 import com.example.WebLogin.service.WatchingDirectory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -41,34 +41,36 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+/**
+ * Controla la página entera menos login.
+ */
 @Controller
 public class DashBoardController {
 
-    // Declaración e inicialización de variables.
-    private String username = "";
-    private String SEPARADOR = File.separator;
+    private UserRepository userRepository;
     private Authentication authentication;
     private UserDetailServiceImpl userDetailsService;
-    @Autowired
     private WatchingDirectory watchingDirectory;
-    private static String actualDirectory = "";
+
     private static UserEntity actualUser;
+
     private ObjectMapper mapper = new ObjectMapper();
+    private String SEPARADOR = File.separator;
+    private static String actualDirectory = "";
+    private String username = "";
     private String filter = "";
 
-    @Autowired
-    private UserRepository userRepository;
-
-    public DashBoardController(UserDetailServiceImpl users) {
-        this.userDetailsService = users;
+    public DashBoardController(UserDetailServiceImpl userDetailsService, WatchingDirectory watchingDirectory) {
+        this.userDetailsService = userDetailsService;
+        this.watchingDirectory = watchingDirectory;
     }
 
     /**
-     * Método de inicio, carga carpetas, imágenes, menús en la aplicación
+     * Uri principal de la aplicacion e inicio post login.
      * 
      * @param model
      * @param request
-     * @return
+     * @return Nos envía a dashboard.html.
      */
     @RequestMapping("/galeria/**")
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
@@ -79,8 +81,11 @@ public class DashBoardController {
         return "dashboard";
     }
 
+    /**
+     * Obtenemos el rol del usuario logeado.
+     * @param model
+     */
     public void getRoleType(Model model) {
-        // Obtenemos el rol del usuario y lo enviamos al DOM.
         String roleType = actualUser.getRoles().stream()
                 .map(RoleEntity::getRoleEnum)
                 .findFirst()
@@ -90,11 +95,13 @@ public class DashBoardController {
     }
 
     /**
-     * Subiremos imágenes, una o varias a este mapping.
+     * Subiremos imágenes, una o varias.
      * 
      * @param multipartFileList clase para obtener varios archivos, en este caso,
      *                          sólo imágenes.
      * @return retornamos una respuesta en formato String.
+     * 
+        * @see org.springframework.web.multipart.MultipartFile;
      */
     @PostMapping("/uploadImg")
     @ResponseBody
@@ -124,10 +131,10 @@ public class DashBoardController {
     }
 
     /**
-     * Método para crear directorios
+     * Crear directorios
      * 
-     * @param dirName
-     * @return
+     * @param dirName nombre del directorio a crear.
+     * @return json de respuesta.
      */
     @RequestMapping("/mkDir")
     @ResponseBody
@@ -149,10 +156,10 @@ public class DashBoardController {
     }
 
     /**
-     * Maping para eliminar imágenes o carpetas, si se borra una carpeta, se elimina
+     * Elimina imágenes o carpetas, si se borra una carpeta, se elimina
      * todo su interior
      * 
-     * @param path
+     * @param list
      * @return
      */
     @RequestMapping("/delImgOrDirectory")
@@ -201,8 +208,12 @@ public class DashBoardController {
     @ResponseBody
     public ObjectNode renameDirOrFile(@RequestParam("name") String name, @RequestParam("newName") String newName) {
 
+        System.out.println("NOMBRE: " + name);
+        System.out.println("NOMBRE2: " + newName);
         File renameFolder = new File(actualDirectory + "/" + name);
         File newFile = new File(actualDirectory + "/" + newName);
+        System.out.println("ACTUAL DIR --> " + renameFolder.getAbsolutePath());
+        System.out.println("NEW DIR --> " + newFile.getAbsolutePath());
         ObjectNode json = mapper.createObjectNode();
         if (!renameFolder.exists() || newFile.exists()) {
             json.put("respuesta", false);
@@ -424,6 +435,7 @@ public class DashBoardController {
         if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
+        watchingDirectory.setInitialPath(folderPath);
         return true;
     }
 
@@ -567,8 +579,17 @@ public class DashBoardController {
                         } catch (NullPointerException e) {
                         }
                         if (mimeType.equals("image") && mimeType != null) {
-                            fileList.add(new DirFilePathClass(f.getName(), f.getName(),
-                                    "/localImages" + uri + "/" + f.getName()));
+                            String previewSrc = "";
+                            String imageHref = "";
+                            if (uri.contains(ImagePreviewService.getDIR_PREVIEW())) {
+                                previewSrc = "/localImages" + uri + SEPARADOR + f.getName();
+                                imageHref = "/localImages" + uri + SEPARADOR + f.getName();
+                            } else {
+                                previewSrc = "/localImages/imagePreview" + uri + SEPARADOR + "PREVI_" + f.getName();
+                                imageHref = "/localImages" + uri + SEPARADOR + f.getName();
+                            }
+
+                            fileList.add(new DirFilePathClass(f.getName(), f.getName(), previewSrc, imageHref));
                         }
 
                     } catch (IOException e) {
@@ -578,7 +599,8 @@ public class DashBoardController {
 
                 } else {
 
-                    dirList.add(new DirFilePathClass(f.getName(), f.getName(), "/galeria" + uri + "/" + f.getName()));
+                    dirList.add(
+                            new DirFilePathClass(f.getName(), f.getName(), "/galeria" + uri + "/" + f.getName(), ""));
                 }
             }
             // Ordenamos las listas por orden alfabético.

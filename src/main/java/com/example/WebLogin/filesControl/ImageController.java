@@ -1,6 +1,8 @@
 package com.example.WebLogin.filesControl;
 
 import com.example.WebLogin.controller.DashBoardController;
+import com.example.WebLogin.service.ImagePreviewService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -20,20 +22,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.swing.JPopupMenu.Separator;
 
 @RestController
 @RequestMapping("/localImages")
 public class ImageController {
 
+    private final String SEPARADOR = File.separator;
+
     @GetMapping("/**")
-    public ResponseEntity<Resource> cargarGaleria(Model model, HttpServletRequest request) {
+    public ResponseEntity<Resource> getOriginalImg(Model model, HttpServletRequest request) {
+        String localFilePath = DashBoardController.getActualDirectory();
+        return getGenericImg(request, localFilePath);
+    }
+
+    @GetMapping("/imagePreview/**")
+    public ResponseEntity<Resource> getPreviewImg(Model model, HttpServletRequest request) {
+        String localFilePath = DashBoardController.getActualDirectory() + SEPARADOR
+                + ImagePreviewService.getDIR_PREVIEW();
+        return getGenericImg(request, localFilePath);
+    }
+
+    public ResponseEntity<Resource> getGenericImg(HttpServletRequest request, String localFilePath) {
 
         String url = request.getRequestURL().toString();
         String uri = url.split("/localImages")[1];
 
         String[] uriSplit = uri.split("/");
         String filename = uriSplit[uriSplit.length - 1];
-        String localFilePath = DashBoardController.getActualDirectory();
 
         try {
             filename = URLDecoder.decode(filename, "UTF-8");
@@ -42,7 +58,9 @@ public class ImageController {
             e.printStackTrace();
         }
         ResponseEntity<Resource> foto = serveFile(filename, localFilePath);
+
         return foto;
+
     }
 
     public ResponseEntity<Resource> serveFile(String filename, String path) {
