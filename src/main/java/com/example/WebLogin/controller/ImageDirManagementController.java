@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
+import com.example.WebLogin.service.ImagePreviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -79,8 +80,8 @@ public class ImageDirManagementController {
     @ResponseBody
     public ObjectNode renameDirOrFile(@RequestParam("name") String name, @RequestParam("newName") String newName) {
 
-        File renameFolder = new File(DashBoardController.actualDirectory + "/" + name);
-        File newFile = new File(DashBoardController.actualDirectory + "/" + newName);
+        File renameFolder = new File(DashBoardController.actualDirectory + SEPARADOR + name);
+        File newFile = new File(DashBoardController.actualDirectory + SEPARADOR + newName);
         ObjectNode json = mapper.createObjectNode();
         if (!renameFolder.exists() || newFile.exists()) {
             json.put("respuesta", false);
@@ -114,9 +115,13 @@ public class ImageDirManagementController {
     @ResponseBody
     public ObjectNode mvDirFiles(@RequestParam("newFolder") String newFolder,
             @RequestParam("fileDirList") String[] fileDirList) {
+
+        System.out.println("NEW FOLDER --> " + newFolder);
+
         List<String> errors = new ArrayList<>();
 
         for (String file : fileDirList) {
+            System.out.println("FILE -> " + file);
             File fileOld = new File(DashBoardController.actualDirectory + SEPARADOR + file);
             File fileNew = new File(newFolder + SEPARADOR + file);
             if (!fileNew.exists()) {

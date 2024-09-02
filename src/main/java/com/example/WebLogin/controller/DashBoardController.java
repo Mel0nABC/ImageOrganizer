@@ -34,14 +34,11 @@ public class DashBoardController {
 
     private Authentication authentication;
     private static UserDetailServiceImpl userDetailsService;
-
     private static UserEntity actualUser;
-
     private ObjectMapper mapper = new ObjectMapper();
     private String SEPARADOR = File.separator;
     public static String actualDirectory = "";
     public static String username = "";
-    private String filter = "";
 
     public DashBoardController(UserDetailServiceImpl userDetailsService) {
         this.userDetailsService = userDetailsService;
@@ -64,24 +61,6 @@ public class DashBoardController {
     }
 
     /**
-     * Para preparar una ruta tipo uri para enviarla por redirect:
-     *
-     * @param uri
-     * @return
-     */
-    public static String getUriOk(String uri) {
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path(uri)
-                .encode()
-                .build();
-        return uriComponents.toUriString();
-    }
-
-    public static String getActualDirectory() {
-        return actualDirectory;
-    }
-
-    /**
      * Cargamos las carpetas e imágenes de la ruta seleccionada.
      *
      * @param model
@@ -91,25 +70,23 @@ public class DashBoardController {
     @ResponseBody
     public ObjectNode cargaContenido(@RequestParam("uri") String uri, @RequestParam("filter") String filter,
             HttpServletRequest request, Model model) {
-        this.filter = filter;
-        authentication = SecurityContextHolder.getContext().getAuthentication();
-        this.username = authentication.getName();
+
+        // authentication = SecurityContextHolder.getContext().getAuthentication();
+        // this.username = authentication.getName();
         /**
          * Declaramos variables necesarias para trabajar con URi y los directorios
          * configurados en config.conf.
          */
         uri = uriDecoder(uri);
-        uri = devuelveUriLimpio(uri);
+        uri = returnUriCleaned(uri);
         File[] filesDirList = getPathList(username);
         String localStorageDir = "";
-
-        // Zona pra cuando ya no estamos en la raiz de un directorio configurado.
-        if (!uri.equals("") && filesDirList.length > 0) {
-
+        // Zona para cuando ya no estamos en la raiz de un directorio configurado.
+        // if (!uri.equals("") && filesDirList.length > 0) {
+        if (!uri.equals("/")) {
             // Recorremos todos los directorios configurados. Obtenemos una lista de los
             // existentes con getPathList()
             for (File f : filesDirList) {
-
                 // Con el fin de evitar un try-catch, se comprueba tamaños para hacer substring
                 // más adelante.
                 if (uri.length() > f.getName().length()) {
@@ -119,15 +96,16 @@ public class DashBoardController {
                     // de la lista.
                     if (localStorageDir.equals(f.getName())) {
                         // Limpiamos el URi, para no tener la carpeta local.
-                        String uriPathLocal = uri.substring(localStorageDir.length() + 1, uri.length());
+                        String uriPathLocal = uri.substring(localStorageDir.length() + 1,
+                                uri.length());
 
                         // Para cuando estamos en la raiz de una carpeta configurada.
                         if (uriPathLocal.equals("")) {
-                            filesDirList = getFilteresFileList(f, filter);
+                            filesDirList = getFilteredFileList(f, filter);
                         } else {
                             // Obtenemos lista de otras carpetas que no sean la raiz.
                             File dir = new File(f.getAbsolutePath() + uriPathLocal);
-                            filesDirList = getFilteresFileList(dir, filter);
+                            filesDirList = getFilteredFileList(dir, filter);
                         }
                         // Hay que mantener actualDirectory actualizado, para que el sistema sepa la
                         // ruta local correcta.
@@ -136,6 +114,7 @@ public class DashBoardController {
                 }
             }
         }
+
         ObjectNode json = mapper.createObjectNode();
         // Se crean dos listas independientes, de archivos y directorios, creando
         // objetos tipo DirFilePathClass.
@@ -232,7 +211,7 @@ public class DashBoardController {
      * @param uri
      * @return
      */
-    public String devuelveUriLimpio(String uri) {
+    public String returnUriCleaned(String uri) {
         if (!uri.equals("/")) {
             String palabraInicio = uri.split("/")[1];
             if (palabraInicio.equals("galeria")) {
@@ -254,7 +233,7 @@ public class DashBoardController {
      * @param filter, palabra o en este caso, inicio de palabra a seleccionar.
      * @return
      */
-    public File[] getFilteresFileList(File f, String filter) {
+    public File[] getFilteredFileList(File f, String filter) {
         File[] filesDirList = f.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String retName) {
                 return retName.toLowerCase().startsWith(filter.toLowerCase());
@@ -270,7 +249,7 @@ public class DashBoardController {
      * @return
      */
     public static File[] getPathList(String username) {
-        Set<PathEntity> listPath = userDetailsService.getPathList(DashBoardController.username);
+        Set<PathEntity> listPath = userDetailsService.getPathList(username);
         File[] filesDirList = new File[listPath.size()];
         int index = 0;
         for (PathEntity path : listPath) {
@@ -292,6 +271,24 @@ public class DashBoardController {
                 .orElse(null).toString();
         model.addAttribute("roleType", roleType);
         model.addAttribute("username", username);
+    }
+
+    /**
+     * Para preparar una ruta tipo uri para enviarla por redirect:
+     *
+     * @param uri
+     * @return
+     */
+    public static String getUriOk(String uri) {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(uri)
+                .encode()
+                .build();
+        return uriComponents.toUriString();
+    }
+
+    public static String getActualDirectory() {
+        return actualDirectory;
     }
 
 }

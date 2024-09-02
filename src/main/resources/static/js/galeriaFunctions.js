@@ -1,8 +1,17 @@
 
 window.addEventListener("load", (event) => {
+
     loadSeccionCarpetasImagenes("");
+
     document.getElementById("filterForName").addEventListener("keyup", event => {
+        if (event.key === "Escape") {
+            cancelFilterForName();
+        }
         loadSeccionCarpetasImagenes(event.target.value)
+    })
+
+    document.getElementById("filterForName").addEventListener("focusout", event => {
+        cancelFilterForName()
     })
 
     menuIco();
@@ -13,7 +22,49 @@ window.addEventListener("load", (event) => {
 
     const child = document.querySelector("nav");
     observer.observe(child);
+
+    mouseTrack()
+
 });
+
+let positionX;
+let positionY
+
+function mouseTrack() {
+    document.onmousemove = handleMouseMove;
+    function handleMouseMove(event) {
+        var eventDoc, doc, body;
+
+        event = event || window.event; // IE-ism
+
+        // If pageX/Y aren't available and clientX/Y are,
+        // calculate pageX/Y - logic taken from jQuery.
+        // (This is to support old IE)
+        if (event.pageX == null && event.clientX != null) {
+            eventDoc = (event.target && event.target.ownerDocument) || document;
+            doc = eventDoc.documentElement;
+            body = eventDoc.body;
+
+            event.pageX = event.clientX +
+                (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                (doc && doc.clientLeft || body && body.clientLeft || 0);
+            event.pageY = event.clientY +
+                (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                (doc && doc.clientTop || body && body.clientTop || 0);
+        }
+
+        // Use event.pageX / event.pageY here
+        positionX = event.pageX;
+        positionY = event.pageY;
+
+        // console.log(positionX + " - " + positionY)
+    }
+}
+
+function cancelFilterForName() {
+    event.target.value = "";
+    loadSeccionCarpetasImagenes("")
+}
 
 function menuIco() {
     /* Para mantener un margin al nav automático, al estar fixed, a veces algun elemento puede varias.
@@ -29,7 +80,6 @@ function menuIco() {
             div.setAttribute("id", "menuContainer");
             menuDesplegable.append(div)
             menuOpen = document.getElementById("menuContainer");
-            console.log(roleType + " - " + actualUsername)
             menuOpen.innerHTML += `<div>
             <p>Usuario: ${actualUsername}</p>
             <p>ROL: ${roleType}</p>
@@ -73,7 +123,6 @@ function editPathFolders() {
         .then(res => res.text())
         .then(response => {
             jsonPath = JSON.parse(response);
-            console.log(jsonPath)
 
             let tbodyTr = "";
             for (i = 0; i < jsonPath.configDirs.length; i++) {
@@ -194,6 +243,7 @@ function deletePath(event) {
 function closeNewPathDiv() {
     document.getElementById("newPathDiv").remove();
     document.getElementById("editPathFolders").style.visibility = "hidden"
+    mvDelDirFileList = []
 }
 
 let pathStatus = false;
@@ -305,7 +355,6 @@ let roleType;
 
 function loadSeccionCarpetasImagenes(filter) {
     var pathname = window.location.pathname;
-    console.log("FILTER --> " + filter)
     fetch(`/cargaContenido?uri=${pathname}&filter=${filter}`)
         .then(res => res.text())
         .then(response => {
@@ -321,18 +370,17 @@ function loadSeccionCarpetasImagenes(filter) {
             } else {
                 //AÑADIR CARPETAS
                 for (i = 0; i < json.dirList.length; i++) {
-
                     if (json.dirList[i].name !== "imagePreview") {
                         dirSection += `<article id="${json.dirList[i].name}" class="dirContainer">
-                        <div>
+                        <div id="${json.dirList[i].name}">
                             <input id="${json.dirList[i].name}" type="checkbox" class="mvDirFile"/>
                         </div>
-                        <a href="${json.dirList[i].src}"><img name="${json.dirList[i].name}" src="/images/carpeta.png"></a>
-                        <p id="showName${json.dirList[i].name}" name="rename" class="pointer" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
+                        <a id="${json.dirList[i].name}" href="${json.dirList[i].src}"><img id="${json.dirList[i].name}" name="${json.dirList[i].name}" src="/images/carpeta.png" class="rightClick"></a>
+                        <p id="showName${json.dirList[i].name}" name="rename" class="pointer fileName" title="Pulsa para renombrar.">${json.dirList[i].name}</p>`
 
                         if (json.uriUbicacion.length > 1) {
                             dirSection +=
-                                `   <input id="newName${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />`;
+                                `   <input id="${json.dirList[i].name}" name="newName" value="${json.dirList[i].name}" type="hidden" />`;
                             // <button value="${json.dirList[i].name}" type="button" onclick="renFolImg(event)">Renombrar</button>`
                         }
                         dirSection += ` </article>`;
@@ -342,16 +390,28 @@ function loadSeccionCarpetasImagenes(filter) {
                 //AÑADIR ARCHIVOS
                 for (i = 0; i < json.fileList.length; i++) {
 
+
+
+                    var src = json.fileList[i].src;
+                    var href = json.fileList[i].href;
+                    var imgPreview = `<img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${src}" href="${href}" class="pointer rightClick"></img>`;
+                    var img = new Image();
+                    img.src = json.fileList[i].src;
+                    if (img.height === 0 | img.src === null) {
+                        imgPreview = '<p class="loadingPreview">GENERANDO PREVIEW DE LA IMAGEN, ACTUALICE LA PÁGINA EN UNOS INSTANTES</p>'
+                    }
+
+
                     const fileName = json.fileList[i].name.replace("PREVI_", "");
 
-                    fileSection += `<article id="${json.fileList[i].name}" class="imgContainer" name="${json.fileList[i].name}">
-                        <div>
+                    fileSection += `<article id="${json.fileList[i].name}" name="${json.fileList[i].name}" class="imgContainer" >
+                        <div id="${json.fileList[i].name}">
                             <input id="${json.fileList[i].name}" type="checkbox" class="mvDirFile"/>
                         </div>
-                        <a onclick="getInfoImg('${json.fileList[i].name}','${json.fileList[i].src}')">
-                             <img id="${json.fileList[i].id}" name="${json.fileList[i].name}" src="${json.fileList[i].src}" href="${json.fileList[i].href}">
+                        <a id="${json.fileList[i].name}" onclick="getInfoImg('${json.fileList[i].name}','${json.fileList[i].src}')">
+                            ${imgPreview} 
                         </a>
-                        <p id="showName${fileName}" name="rename" class="pointer" title="Pulsa para renombrar.">${fileName}</p>
+                        <p id="showName${fileName}" name="rename" class="fileName" title="Pulsa para renombrar.">${fileName}</p>
                         <input id="${fileName}" name="${fileName}" value="${fileName}" type="hidden"/>
                         </article>`
 
@@ -376,45 +436,158 @@ function loadSeccionCarpetasImagenes(filter) {
                    </div>`;
             document.getElementById("seccionCarpetasImagenes").innerHTML = html;
 
-            const renameP = document.getElementsByName("rename");
+            const articleImg = document.getElementsByClassName("rightClick");
 
-            for (i = 0; i < renameP.length; i++) {
-                renameP[i].addEventListener("click", event => {
-                    const father = event.target.parentElement;
-                    const inputNewName = father.lastElementChild
-                    let nombre = inputNewName.value
-                    inputNewName.type = "visible";
-                    const end = inputNewName.value.length
-                    inputNewName.setSelectionRange(0, end - 4);
-                    inputNewName.focus()
-
-                    inputNewName.addEventListener("keypress", event => {
-                        console.log(inputNewName.fo)
-                        if (event.key === 'Enter' | event.key === 'Escape') {
-                            inputNewName.type = "hidden";
-                        }
-                    })
-
-                    inputNewName.addEventListener("focusout", event => {
-                        const nombre2 = inputNewName.value
-                        if (nombre !== nombre2) {
-                            renFolImg(nombre, nombre2)
-                        }
-                        inputNewName.type = "hidden";
-                    })
-
-
-                })
+            for (i = 0; i < articleImg.length; i++) {
+                articleImg[i].addEventListener("contextmenu", event => {
+                    rightClick(event);
+                });
             }
-
         })
+}
+
+function rightClick(event) {
+    event.preventDefault();
+    const oldMenu = document.getElementById("optionsMenu");
+    if (oldMenu !== null) {
+        oldMenu.remove();
+    }
+
+    let divOptionMenu = document.createElement("div");
+    divOptionMenu.setAttribute("id", "optionsMenu");
+    divOptionMenu.setAttribute("class", "btnMenuList");
+
+
+    const btnRename = document.createElement("button")
+    btnRename.setAttribute("id", "btnRename");
+    btnRename.innerHTML = "Renombrar";
+    btnRename.setAttribute("onmouseenter", "btnRename.focus();")
+    btnRename.setAttribute("onclick", "renameButton();")
+    divOptionMenu.append(btnRename)
+
+
+    const btnDelete = document.createElement("button")
+    btnDelete.setAttribute("id", "btnDelete");
+    btnDelete.innerHTML = "Eliminar";
+    btnDelete.setAttribute("onmouseenter", "btnDelete.focus();")
+    btnDelete.setAttribute("onclick", "deleteButton(event);")
+    divOptionMenu.append(btnDelete)
+
+    const btnDownload = document.createElement("button")
+    btnDownload.setAttribute("id", "btnDownload");
+    btnDownload.innerHTML = "Descargar";
+    btnDownload.setAttribute("onmouseenter", "btnDownload.focus();")
+    btnDownload.setAttribute("onclick", "downOriginalImg();")
+    divOptionMenu.append(btnDownload)
+
+    const btnMove = document.createElement("button")
+    btnMove.setAttribute("id", "btnMove");
+    btnMove.innerHTML = "Mover";
+    btnMove.setAttribute("onmouseenter", "btnMove.focus();")
+    btnMove.setAttribute("onclick", "moveButton(event);")
+    divOptionMenu.append(btnMove)
+
+    document.getElementById("header-container").appendChild(divOptionMenu);
+
+
+    if (divOptionMenu) {
+        divOptionMenu.setAttribute('tabindex', '0');
+        divOptionMenu.style.position = "absolute";
+        divOptionMenu.style.setProperty('top', positionY + 'px');
+        divOptionMenu.style.setProperty('left', positionX + 'px');
+    }
+
+    inputObjForActions = event.target.parentElement.parentElement.lastElementChild;
+    imgToDownload = event.target.parentElement.parentElement.querySelector("img");
+
+    document.addEventListener("click", event => {
+        const divOptionMenu = document.getElementById("optionsMenu");
+
+        if (divOptionMenu === null) return;
+
+        if (event.target.id !== "btnRename") {
+            divOptionMenu.remove();
+        }
+
+        if (event.target.id !== "btnDelete") {
+            divOptionMenu.remove();
+        }
+
+        if (event.target.id !== "btnDownload") {
+            divOptionMenu.remove();
+        }
+
+        if (event.target.id !== "btnMove") {
+            divOptionMenu.remove();
+        }
+    })
+}
+
+function moveButton(event) {
+
+
+    if (window.location.pathname === "/galeria") {
+        alert("En esta ubicación, no puede mover carpetas.")
+        return;
+    }
+
+    console.log("MOVE BUTTON")
+    const mvDirFileListCheckBox = document.getElementsByClassName("mvDirFile");
+    const mvDirFileContainer = document.getElementById("mvDirFileContainer");
+
+    mvDelDirFileList.push(inputObjForActions.id);
+
+    const nav = document.getElementById("nav");
+    nav.innerHTML +=
+        `<div id="mvDirFileContainer">
+        </div>`
+    menuIco();
+
+    confirmMvDirFile();
+}
+
+function deleteButton(event) {
+    // mvDelDirFileList
+    mvDelDirFileList.push(inputObjForActions.id)
+    delFolImg();
+}
+
+let inputObjForActions;
+let imgToDownload;
+
+function renameButton() {
+
+    const inputNewName = inputObjForActions;
+    let nombre = inputNewName.value
+    inputNewName.type = "visible";
+    const end = inputNewName.value.length
+    inputNewName.setSelectionRange(0, end - 4);
+    inputNewName.focus()
+
+    inputNewName.addEventListener("keyup", event => {
+        if (event.key === 'Enter') {
+            confirmRename(nombre, inputNewName)
+        }
+
+        if (event.key === 'Escape') {
+            inputNewName.type = "hidden";
+        }
+    })
+    inputNewName.addEventListener("focusout", event => {
+        confirmRename(nombre, inputNewName)
+    })
+}
+
+function confirmRename(nombre, inputNewName) {
+    const nombre2 = inputNewName.value
+    if (nombre !== nombre2) {
+        renFolImg(nombre, nombre2)
+    }
+    inputNewName.type = "hidden";
 }
 
 
 function renFolImg(nombre, nombre2) {
-    console.log("NOMBRE: " + nombre)
-    console.log("NOMBRE2: " + nombre2)
-    console.log("EN REN FOL IMG")
     fetch(`/rename?name=${nombre}&newName=${nombre2}`)
         .then(res => res.text())
         .then(response => {
@@ -432,8 +605,9 @@ function uriChangePath(event) {
 
 
 
-function downOriginalImg(path, urlImg) {
-    console.log(path + " - " + urlImg)
+
+function downOriginalImg() {
+    const urlImg = imgToDownload.getAttribute("href");
     const link = document.createElement("a");
     link.setAttribute('href', urlImg);
     link.setAttribute('download', urlImg);
@@ -458,11 +632,6 @@ function getInfoImg(path, urlImg) {
             document.getElementById("infoImgBox-container").innerHTML += `<div id="infoImgBox" class="contenido-emergente"></div>`;
             infoImgBox = document.getElementById("infoImgBox");
             const json = JSON.parse(response);
-
-            console.log("PATH --> " + path)
-            console.log("URL IMG --> " + urlImg)
-
-
 
             infoImgBox.innerHTML += `<button onclick="cerrarBox()"" id="closeImgBox"> X</button>
         <img src="${urlImg}" href="${urlImg}"/>
@@ -620,7 +789,6 @@ function uploadingImg() {
 
 function finishUploadImg() {
     document.getElementById("uploadingImg-container").remove();
-    console.log("remove")
 }
 
 
@@ -679,7 +847,6 @@ function menuManageImgDir() {
 
 
 function confirmMvDirFile() {
-
     if (mvDelDirFileList.length === 0 | mvDelDirFileList === null) {
         alert("No ha seleccionado ningún archivo o carpeta para mover.")
         return
@@ -729,7 +896,6 @@ function mvImgDirFunction() {
             let listaErrores = "";
 
             for (i = 0; i < json.errors.length; i++) {
-                console.log("ERRORES: " + json.errors[i])
                 listaErrores += `<li>${json.errors[i]}</li>`;
             }
 
@@ -748,6 +914,7 @@ function mvImgDirFunction() {
 
     mvDelDirFileList = [];
 }
+
 
 function delFolImg() {
 
@@ -789,7 +956,12 @@ function delFolImg() {
 
 
 function cancelMvDirFile() {
-    document.getElementById("mvDirFileContainer").remove();
+
+    const closeMenu = document.getElementById("mvDirFileContainer");
+
+    if (closeMenu === null) return;
+
+    closeMenu.remove();
     const mvDirFileListCheckBox = document.getElementsByClassName("mvDirFile");
     for (i = 0; i < mvDirFileListCheckBox.length; i++) {
         mvDirFileListCheckBox[i].style.visibility = "hidden";
@@ -915,9 +1087,7 @@ function userManagement() {
                     let clickUserGet = event.target.value;
                     if (actualUsername === clickUserGet) {
                         userActual = true;
-                        console.log("USUARIO ACTUAL. " + actualUsername + " - " + clickUserGet)
                     } else {
-                        console.log("USUARIO NO ACTUAL.")
                         userActual = false;
                     }
                 })
@@ -930,7 +1100,6 @@ function userManagement() {
                     let userAlreadyExist = false;
 
                     trList.forEach(event => {
-                        console.log(event.querySelector("#username").value)
                         let usernameFromList = event.querySelector("#username").name;
 
                         if (newUsername === usernameFromList) {
@@ -943,7 +1112,7 @@ function userManagement() {
                             userManagement();
                             return false;
                         }
-                    }else{
+                    } else {
                         if (userAlreadyExist) {
                             alert("El nombre de usuario que ha elegido, ya existe. Elija otro.")
                             userManagement();
@@ -1095,7 +1264,6 @@ function newUserConfirm(event) {
     fetch(`/newUser`, options)
         .then(res => res.text()
             .then(response => {
-                console.log("RESPUESTA NEW USER: " + response)
                 if (response === "true") {
                     newUserCancel();
                     userManagement();
@@ -1107,7 +1275,6 @@ function newUserConfirm(event) {
 function delUser(event) {
 
     if (confirm("¿Va a eliminar el usuario con ID:" + event.target.id + ", ¿Desea continuar?")) {
-        console.log("ID --> " + event.target.id)
         let formData = new FormData();
         formData.append("id", event.target.id);
         const options = {

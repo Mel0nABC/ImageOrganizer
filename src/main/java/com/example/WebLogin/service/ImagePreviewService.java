@@ -48,7 +48,7 @@ public class ImagePreviewService {
      * @param path
      */
     public void findImagesToResize(File path) {
-
+        System.out.println("ESCANEANDO CAMBIOS EN PEWVIEW EN : "+path);
         if (path.getName().equals(DIR_PREVIEW)) {
             return;
         }
@@ -67,7 +67,7 @@ public class ImagePreviewService {
             }
         } else {
             for (File file : actualPathList) {
-    
+
                 if (filterImgFile(file)) {
 
                     File previewFile = new File(getPreviewNameAbsdPath(file));
@@ -149,7 +149,7 @@ public class ImagePreviewService {
     }
 
     /**
-     * Método para comprobar si el original de una preview existe, si no existe, se
+     * Comprueba si el original de una preview existe, si no existe, se
      * borra preview.
      * 
      * @param actualPath directorio donde se ubican imágenes originales.
@@ -167,6 +167,7 @@ public class ImagePreviewService {
                 File originalFile = new File(delPreviewNameAbsdPath(previewFile));
                 // Comprobamos si el original existe, si no, borramos preview.
                 if (!originalFile.exists() && previewFile.exists()) {
+                    System.out.println("BORRAMOS PREVIEW --> "+previewFile.getAbsolutePath());
                     previewFile.delete();
                 }
             }
@@ -174,7 +175,7 @@ public class ImagePreviewService {
     }
 
     /**
-     * Método para comprobar si un archivo es de tipo imagen, comprueba su tipo
+     * Comprueba si un archivo es de tipo imagen, comprueba su tipo
      * mime, siendo un ejemplo imagen/jpg, usaremos sólo imagen. Así todo formato
      * que sea imagen, entrará.
      * 
@@ -205,7 +206,7 @@ public class ImagePreviewService {
     }
 
     /**
-     * Método para generar path absoluto para el nombre de una imagen del tipo
+     * Genera path absoluto para el nombre de una imagen del tipo
      * preview.
      * 
      * @param file Proporcionamos que imagen original queremos generar tu path tipo
@@ -225,12 +226,12 @@ public class ImagePreviewService {
      * @return Devolvemos String tipo original
      */
     public String delPreviewNameAbsdPath(File previewFile) {
-        return previewFile.getAbsolutePath().replace("imagePreview/PREVI_", "");
+        return previewFile.getAbsolutePath().replace("imagePreview"+SEPARADOR+"PREVI_", "");
 
     }
 
     /**
-     * Proporcionamos el valor de la constante DIR_PREVIEW. Se usa en otra clase
+     * Proporcionamos el valor de la constante DIR_PREVIEW.
      * 
      * @return
      */

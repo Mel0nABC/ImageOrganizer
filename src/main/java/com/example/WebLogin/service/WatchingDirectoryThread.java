@@ -64,7 +64,6 @@ public class WatchingDirectoryThread implements Runnable {
                                 WatchingDirectory.listPath(ruta);
                             }
                             respuesta = "CREATED ON --> " + path + SEPARADOR + event.context();
-                            System.out.println(respuesta);
                         } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
 
                             // Si lo borrado, contiene el dir de previews, escanearemos el directorio padre
@@ -79,7 +78,6 @@ public class WatchingDirectoryThread implements Runnable {
 
                         } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
                             respuesta = "MODIFIES ON --> " + path + SEPARADOR + event.context();
-                            System.out.println(respuesta);
                         }
                         writeLog(respuesta);
                     }
@@ -101,6 +99,7 @@ public class WatchingDirectoryThread implements Runnable {
     }
 
     public void writeLog(String activity) {
+        System.out.println(activity);
         FileWriter escribe;
         File fichero = WebLoginApplication.getLogFilePath();
         String date = new GregorianCalendar().toZonedDateTime()

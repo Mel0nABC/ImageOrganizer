@@ -1,6 +1,7 @@
 package com.example.WebLogin.controller;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,19 +47,9 @@ public class BibliotecaController {
     @GetMapping("/openConfigDirectory")
     @ResponseBody
     public ObjectNode configDirectory() {
-
-        File[] configDirsTemp = DashBoardController.getPathList(DashBoardController.username);
-        List<File> configDirs = new ArrayList<>();
-
-        for (File f : configDirsTemp) {
-            configDirs.add(f);
-        }
         ObjectNode json = mapper.createObjectNode();
-        json.putPOJO("configDirs", configDirs);
-        return json;
+        return json.putPOJO("configDirs", DashBoardController.getPathList(DashBoardController.username));
     }
-
-
 
     /**
      * Para guardar una nueva biblioteca en la base de datos.
@@ -120,7 +111,6 @@ public class BibliotecaController {
         return true;
     }
 
-
     /**
      * Mapping para cuando accedemos a la configuración de bibliotecas del usuario,
      * proporciona las que ya tenga configuradas.
@@ -131,6 +121,7 @@ public class BibliotecaController {
     @PostMapping("/editDirectory")
     @ResponseBody
     public ObjectNode editDirectory(@RequestParam("path") String path) {
+        System.out.println("PARA MOVER --> " + path);
         ObjectNode json = null;
         String osName = System.getProperty("os.name");
         osName = osName.substring(0, 3);
