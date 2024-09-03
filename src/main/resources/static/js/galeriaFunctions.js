@@ -128,7 +128,7 @@ function editPathFolders() {
             for (i = 0; i < jsonPath.configDirs.length; i++) {
                 tbodyTr += `<tr id="${jsonPath.configDirs[i]}">
                                 <td>${jsonPath.configDirs[i]}</td>
-                                <td><button onclick="deletePath(event)" value="${jsonPath.configDirs[i]}">ELIMINAR</button></td>
+                                <td><button onclick="delLocalDir(event)" value="${jsonPath.configDirs[i]}">ELIMINAR</button></td>
                                 </tr>`;
             }
 
@@ -136,7 +136,7 @@ function editPathFolders() {
             let html = `<div id="editPathFolders" class="contenido-emergente">
                                     <h1>CONFIGURACIÓN DE BIBLIOTECAS</h1>
                                         <div class="menu-container">
-                                            <button onclick="addNewPath()" class="boton">AGREGAR</button>
+                                            <button onclick="addNewLibrary()" class="boton">AGREGAR</button>
                                             <button onclick="closeEditPathFolders()" class="boton">CANCELAR</button>
                                         </div>
                                         <div id="pathFoldSection">
@@ -160,10 +160,10 @@ function editPathFolders() {
 }
 
 
-function addNewPath(typeFunction) {
+function addNewLibrary(typeFunction) {
     const formData = new FormData();
     formData.append("path", "rootUnits");
-    let buttonTypeAceptar = "confirmNewPath()";
+    let buttonTypeAceptar = "newLocalDir()";
 
     if (typeFunction === "mvDirFile") {
         buttonTypeAceptar = "mvImgDirFunction()"
@@ -176,7 +176,7 @@ function addNewPath(typeFunction) {
         body: formData
     }
 
-    fetch("/editDirectory", options)
+    fetch("/getLocalDirs", options)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
@@ -215,7 +215,7 @@ function closeEditPathFolders() {
     if (pathStatus) location.href = "/galeria";
 }
 
-function deletePath(event) {
+function delLocalDir(event) {
 
     if (confirm("¿Esta seguro de eliminar el directorio seleccionada?")) {
 
@@ -227,7 +227,7 @@ function deletePath(event) {
             body: formData
         }
 
-        fetch(`/delDirectory`, options)
+        fetch(`/delLocalDir`, options)
             .then(res => res.text())
             .then(response => {
 
@@ -248,7 +248,7 @@ function closeNewPathDiv() {
 
 let pathStatus = false;
 
-function confirmNewPath() {
+function newLocalDir() {
 
     let newFolderPath = document.getElementById("absolutPath").value;
     const formData = new FormData();
@@ -257,7 +257,7 @@ function confirmNewPath() {
         method: "POST",
         body: formData
     }
-    fetch(`/confirmNewPath`, options)
+    fetch(`/newLocalDir`, options)
         .then(res => res.text())
         .then(response => {
             if (response === "true") {
@@ -279,7 +279,7 @@ function actionDirFunc(event) {
         method: "POST",
         body: formData
     }
-    fetch(`/editDirectory`, options)
+    fetch(`/getLocalDirs`, options)
         .then(res => res.text())
         .then(response => {
             let json = JSON.parse(response)
@@ -666,6 +666,7 @@ function getInfoImg(path, urlImg) {
 // CERRAR CAJA DE INFO DE IMAGEN
 function cerrarBox() {
     infoImgBox.remove();
+    menuIco();
 }
 // FINAL ZONA CARPETAS E CARGA IMÁGENES -- ####################################
 
@@ -863,7 +864,7 @@ function confirmMvDirFile() {
     node.setAttribute("class", "ventana-emergente");
     document.getElementById("mvDirFileContainer").appendChild(node);
     document.getElementById("editPathFolders").style.visibility = "visible"
-    addNewPath("mvDirFile");
+    addNewLibrary("mvDirFile");
 }
 
 function mvImgDirFunction() {

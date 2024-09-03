@@ -1,6 +1,5 @@
 package com.example.WebLogin.controller;
 
-import java.io.File;
 import java.util.Set;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -110,8 +109,6 @@ public class UserManagement {
         try {
             JsonNode jsonNode = mapper.readTree(json);
 
-            Set<RoleEntity> newSetRoleEntity = null;
-
             RoleEnum[] roleList = RoleEnum.values();
             RoleEnum newRoleEnum = null;
             for (RoleEnum role : roleList) {
@@ -132,22 +129,19 @@ public class UserManagement {
             newRoleEntity.setRoleEnum(newRoleEnum);
             newUser.setRoles(Set.of(newRoleEntity));
 
-            System.out.println(newUser.toString());
-
             this.userRepository.save(newUser);
 
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }
 
-        if (userDetailsService.getUserByUsername(newUser.getUsername()) == null)
+        if (userDetailsService.getUserByUsername(newUser.getUsername()) == null) {
             return false;
+        }
 
         return true;
     }
@@ -155,7 +149,6 @@ public class UserManagement {
     @RequestMapping("/delUser")
     @ResponseBody
     public boolean delUser(@RequestParam("id") Long id) {
-        UserEntity delUser = userDetailsService.findUserEntityById(id);
         return userDetailsService.deleteById(id);
     }
 

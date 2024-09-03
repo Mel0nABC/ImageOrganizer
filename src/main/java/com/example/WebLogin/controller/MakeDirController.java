@@ -26,15 +26,15 @@ public class MakeDirController {
     @ResponseBody
     public ObjectNode mkDir(@RequestParam("dirName") String dirName) {
         File dir = new File(DashBoardController.actualDirectory + SEPARADOR + dirName);
-        String respuesta = "";
+        String respuesta = "La carpeta ya existe.";
+
         if (!dir.exists()) {
             dir.mkdir();
             if (dir.exists()) {
                 respuesta = "Carpeta creada satisfactoriamente.";
             }
-        } else {
-            respuesta = "La carpeta ya existe.";
         }
+
         ObjectNode json = mapper.createObjectNode();
         json.put("respuesta", respuesta);
 

@@ -48,7 +48,6 @@ public class ImagePreviewService {
      * @param path
      */
     public void findImagesToResize(File path) {
-        System.out.println("ESCANEANDO CAMBIOS EN PEWVIEW EN : "+path);
         if (path.getName().equals(DIR_PREVIEW)) {
             return;
         }
@@ -74,7 +73,6 @@ public class ImagePreviewService {
 
                     if (file.exists() && !previewFile.exists()) {
                         resizeImg(file.getAbsolutePath(), getPreviewNameAbsdPath(file));
-                        // System.out.println("RESIZE --> " + file.getAbsolutePath());
                     }
 
                 }
@@ -167,7 +165,6 @@ public class ImagePreviewService {
                 File originalFile = new File(delPreviewNameAbsdPath(previewFile));
                 // Comprobamos si el original existe, si no, borramos preview.
                 if (!originalFile.exists() && previewFile.exists()) {
-                    System.out.println("BORRAMOS PREVIEW --> "+previewFile.getAbsolutePath());
                     previewFile.delete();
                 }
             }

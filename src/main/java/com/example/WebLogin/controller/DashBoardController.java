@@ -36,16 +36,15 @@ public class DashBoardController {
     private static UserDetailServiceImpl userDetailsService;
     private static UserEntity actualUser;
     private ObjectMapper mapper = new ObjectMapper();
-    private String SEPARADOR = File.separator;
     public static String actualDirectory = "";
     public static String username = "";
 
     public DashBoardController(UserDetailServiceImpl userDetailsService) {
-        this.userDetailsService = userDetailsService;
+        DashBoardController.userDetailsService = userDetailsService;
     }
 
     /**
-     * Uri principal de la aplicacion e inicio post login.
+     * Carga página principal post login.
      * 
      * @param model
      * @param request
@@ -54,7 +53,7 @@ public class DashBoardController {
     @RequestMapping("/galeria/**")
     public String cargaGaleriaGet(Model model, HttpServletRequest request) {
         authentication = SecurityContextHolder.getContext().getAuthentication();
-        this.username = authentication.getName();
+        DashBoardController.username = authentication.getName();
         actualUser = userDetailsService.getUserByUsername(username);
         getRoleType(model);
         return "dashboard";
@@ -71,29 +70,19 @@ public class DashBoardController {
     public ObjectNode cargaContenido(@RequestParam("uri") String uri, @RequestParam("filter") String filter,
             HttpServletRequest request, Model model) {
 
-        // authentication = SecurityContextHolder.getContext().getAuthentication();
-        // this.username = authentication.getName();
-        /**
-         * Declaramos variables necesarias para trabajar con URi y los directorios
-         * configurados en config.conf.
-         */
         uri = uriDecoder(uri);
         uri = returnUriCleaned(uri);
         File[] filesDirList = getPathList(username);
         String localStorageDir = "";
         // Zona para cuando ya no estamos en la raiz de un directorio configurado.
-        // if (!uri.equals("") && filesDirList.length > 0) {
         if (!uri.equals("/")) {
             // Recorremos todos los directorios configurados. Obtenemos una lista de los
             // existentes con getPathList()
             for (File f : filesDirList) {
-                // Con el fin de evitar un try-catch, se comprueba tamaños para hacer substring
-                // más adelante.
+
                 if (uri.length() > f.getName().length()) {
                     localStorageDir = uri.substring(1, f.getName().length() + 1);
 
-                    // Comprobamos que el nombre del archivo local, coincide con el que recorremos
-                    // de la lista.
                     if (localStorageDir.equals(f.getName())) {
                         // Limpiamos el URi, para no tener la carpeta local.
                         String uriPathLocal = uri.substring(localStorageDir.length() + 1,
@@ -103,12 +92,10 @@ public class DashBoardController {
                         if (uriPathLocal.equals("")) {
                             filesDirList = getFilteredFileList(f, filter);
                         } else {
-                            // Obtenemos lista de otras carpetas que no sean la raiz.
+
                             File dir = new File(f.getAbsolutePath() + uriPathLocal);
                             filesDirList = getFilteredFileList(dir, filter);
                         }
-                        // Hay que mantener actualDirectory actualizado, para que el sistema sepa la
-                        // ruta local correcta.
                         DashBoardController.actualDirectory = f.getAbsolutePath() + uriPathLocal;
                     }
                 }
@@ -116,8 +103,7 @@ public class DashBoardController {
         }
 
         ObjectNode json = mapper.createObjectNode();
-        // Se crean dos listas independientes, de archivos y directorios, creando
-        // objetos tipo DirFilePathClass.
+
         if (filesDirList != null) {
             List<DirFilePathClass> fileList = new ArrayList<>();
             List<DirFilePathClass> dirList = new ArrayList<>();
@@ -137,18 +123,17 @@ public class DashBoardController {
                             String previewSrc = "";
                             String imageHref = "";
                             if (uri.contains(ImagePreviewService.getDIR_PREVIEW())) {
-                                previewSrc = "/localImages" + uri + SEPARADOR + f.getName();
-                                imageHref = "/localImages" + uri + SEPARADOR + f.getName();
+                                previewSrc = "/localImages" + uri + "/" + f.getName();
+                                imageHref = "/localImages" + uri + "/" + f.getName();
                             } else {
-                                previewSrc = "/localImages/imagePreview" + uri + SEPARADOR + "PREVI_" + f.getName();
-                                imageHref = "/localImages" + uri + SEPARADOR + f.getName();
+                                previewSrc = "/localImages/imagePreview" + uri + "/" + "PREVI_" + f.getName();
+                                imageHref = "/localImages" + uri + "/" + f.getName();
                             }
 
                             fileList.add(new DirFilePathClass(f.getName(), f.getName(), previewSrc, imageHref));
                         }
 
                     } catch (IOException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
 
@@ -180,14 +165,19 @@ public class DashBoardController {
                     .map(RoleEntity::getRoleEnum)
                     .findFirst()
                     .orElse(null).toString();
+
             actualUser = userDetailsService.getUserByUsername(username);
-            json.put("username", this.username);
+
+            json.put("username", DashBoardController.username);
             json.putPOJO("roleType", roleType);
+
             json.put("uri", uriDecoder(request.getRequestURI()));
             json.putPOJO("uriUbicacion", uriUbicacion);
+
             json.putPOJO("fileList", fileList);
             json.putPOJO("dirList", dirList);
             json.put("folderStatus", "contains");
+
             if ((fileList.size() == 0 | fileList == null) && (dirList.size() == 0 | dirList == null)) {
                 json.put("folderStatus", "empty");
             }

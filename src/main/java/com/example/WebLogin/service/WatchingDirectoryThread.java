@@ -16,6 +16,10 @@ import java.util.GregorianCalendar;
 
 import com.example.WebLogin.WebLoginApplication;
 
+/**
+ * Monitorea un directorio específico, controla la actividad en crear, borrar o
+ * modificaciones en el interior, tanto de archivos como carpetas.
+ */
 public class WatchingDirectoryThread implements Runnable {
 
     private final String SEPARADOR = File.separator;
@@ -25,7 +29,6 @@ public class WatchingDirectoryThread implements Runnable {
 
     @Override
     public void run() {
-        // TODO Auto-generated method stub
         wathDirectory();
     }
 
@@ -72,8 +75,6 @@ public class WatchingDirectoryThread implements Runnable {
                                 imagePreviewService.findImagesToResize(
                                         new File(path.split(ImagePreviewService.getDIR_PREVIEW())[0]));
                             }
-
-                            WatchingDirectory.stopThreads(ruta.getAbsolutePath());
                             respuesta = "DELETED ON --> " + path + SEPARADOR + event.context();
 
                         } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
@@ -93,13 +94,11 @@ public class WatchingDirectoryThread implements Runnable {
         } catch (
 
         IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     public void writeLog(String activity) {
-        System.out.println(activity);
         FileWriter escribe;
         File fichero = WebLoginApplication.getLogFilePath();
         String date = new GregorianCalendar().toZonedDateTime()
@@ -112,7 +111,6 @@ public class WatchingDirectoryThread implements Runnable {
             guarda.newLine();
             guarda.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

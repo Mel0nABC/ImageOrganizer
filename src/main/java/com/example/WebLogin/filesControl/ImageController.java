@@ -8,10 +8,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javax.swing.JPopupMenu.Separator;
-
-@RestController
+@Controller
 @RequestMapping("/localImages")
 public class ImageController {
 
@@ -54,7 +52,6 @@ public class ImageController {
         try {
             filename = URLDecoder.decode(filename, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         ResponseEntity<Resource> foto = serveFile(filename, localFilePath);

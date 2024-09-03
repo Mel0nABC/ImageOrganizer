@@ -2,8 +2,6 @@ package com.example.WebLogin.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.WebLogin.otherClasses.GetImageProperties;
 import com.example.WebLogin.otherClasses.ImageProperties;
-import com.example.WebLogin.service.ImagePreviewService;
+import com.example.WebLogin.service.WatchingDirectory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -26,6 +24,7 @@ public class ImageDirManagementController {
 
     private final String SEPARADOR = File.separator;
     private ObjectMapper mapper = new ObjectMapper();
+    private ObjectNode json;
 
     /**
      * Elimina imágenes o carpetas, si se borra una carpeta, se elimina
@@ -41,14 +40,15 @@ public class ImageDirManagementController {
         String delMsg = "";
 
         for (int i = 0; i < list.length; i++) {
-            File imgToDel = new File(DashBoardController.actualDirectory + SEPARADOR + list[i]);
-            if (imgToDel.exists() | imgToDel.isDirectory()) {
-                if (imgToDel.isFile()) {
-                    imgToDel.delete();
+            File imgDirToDel = new File(DashBoardController.actualDirectory + SEPARADOR + list[i]);
+            if (imgDirToDel.exists() | imgDirToDel.isDirectory()) {
+                if (imgDirToDel.isFile()) {
+                    imgDirToDel.delete();
                     delMsg = "Imagen eliminada satisfactoriamente.";
                 } else {
                     try {
-                        FileUtils.deleteDirectory(imgToDel);
+                        WatchingDirectory.stopThreads(imgDirToDel.getAbsolutePath());
+                        FileUtils.deleteDirectory(imgDirToDel);
                         delMsg = "Directorio eliminado satisfactoriamente.";
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -61,7 +61,7 @@ public class ImageDirManagementController {
             }
         }
 
-        ObjectNode json = mapper.createObjectNode();
+        json = mapper.createObjectNode();
         json.put("respuesta", respuesta);
         json.put("delMsg", delMsg);
 
@@ -82,7 +82,7 @@ public class ImageDirManagementController {
 
         File renameFolder = new File(DashBoardController.actualDirectory + SEPARADOR + name);
         File newFile = new File(DashBoardController.actualDirectory + SEPARADOR + newName);
-        ObjectNode json = mapper.createObjectNode();
+        json = mapper.createObjectNode();
         if (!renameFolder.exists() || newFile.exists()) {
             json.put("respuesta", false);
             return json;
@@ -107,7 +107,7 @@ public class ImageDirManagementController {
     @GetMapping("/imgProperties")
     @ResponseBody
     public ImageProperties imgProperties(@RequestParam("imgName") String imgName) {
-        String imgFullPath = DashBoardController.actualDirectory + "/" + imgName;
+        String imgFullPath = DashBoardController.actualDirectory + SEPARADOR + imgName;
         return GetImageProperties.getPropertiesImg(imgFullPath);
     }
 
@@ -130,8 +130,8 @@ public class ImageDirManagementController {
                 errors.add(file);
             }
         }
-        ObjectNode node = mapper.createObjectNode();
-        node.putPOJO("errors", errors);
-        return node;
+        json = mapper.createObjectNode();
+        json.putPOJO("errors", errors);
+        return json;
     }
 }

@@ -1,20 +1,10 @@
 package com.example.WebLogin.controller;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.WebLogin.persistence.entity.RoleEntity;
 import com.example.WebLogin.persistence.entity.UserEntity;
 import com.example.WebLogin.service.UserDetailServiceImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -28,6 +18,7 @@ public class LoginController {
         this.userDetailsService = users;
     }
 
+    
     @GetMapping("/")
     public String dashboard() {
         return "dashboard";
@@ -55,12 +46,10 @@ public class LoginController {
     }
 
     /**
-     * Método de inicio de la aplicación. Dependiendo si es la primera vez que se
-     * inicia la aplicación o no, hará una cosa u otra.
+     * Sólo para el inicio de la aplicación.
      * 
      * En el primer inicio, se solicitará al usuario que cambie el usuario y
-     * contraseña para el usuario administrador. En las siguientes ya será un uso
-     * normal.
+     * contraseña para el usuario administrador.
      * 
      * @param username usuario en el login
      * @param password passwd en el login
@@ -92,6 +81,11 @@ public class LoginController {
         return "redirect:/";
     }
 
+    /**
+     * Hace logout de la aplicación
+     * 
+     * @param session
+     */
     @GetMapping("/logout")
     public void logout(HttpSession session) {
         System.out.println("LOGOUT");

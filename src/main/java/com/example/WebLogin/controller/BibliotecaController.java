@@ -1,11 +1,8 @@
 package com.example.WebLogin.controller;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -27,11 +24,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Controller
 public class BibliotecaController {
 
-    private String SEPARADOR = File.separator;
+    private final String SEPARADOR = File.separator;
     private ObjectMapper mapper = new ObjectMapper();
+    private ObjectNode json;
     private UserDetailServiceImpl userDetailsService;
     private WatchingDirectory watchingDirectory;
     private boolean noExistPath = true;
+    private TreeMap<String, String> dirListSorted;
 
     public BibliotecaController(UserDetailServiceImpl userDetailsService, WatchingDirectory watchingDirectory) {
         this.userDetailsService = userDetailsService;
@@ -47,21 +46,21 @@ public class BibliotecaController {
     @GetMapping("/openConfigDirectory")
     @ResponseBody
     public ObjectNode configDirectory() {
-        ObjectNode json = mapper.createObjectNode();
+        json = mapper.createObjectNode();
         return json.putPOJO("configDirs", DashBoardController.getPathList(DashBoardController.username));
     }
 
     /**
-     * Para guardar una nueva biblioteca en la base de datos.
+     * Guarda una nueva biblioteca en la base de datos.
      * 
-     * @param folderPath
+     * @param newFolderParh
      * @return
      */
-    @PostMapping("/confirmNewPath")
+    @PostMapping("/newLocalDir")
     @ResponseBody
-    public Boolean confirmNewPath(@RequestParam("newFolderParh") String folderPath) {
+    public Boolean confirmNewPath(@RequestParam("newFolderParh") String newFolderParh) {
 
-        if (!new File(folderPath).exists()) {
+        if (!new File(newFolderParh).exists()) {
             return false;
         }
 
@@ -72,7 +71,7 @@ public class BibliotecaController {
         // Comprobamos que el usuario tiene ya asignado ese directorio (no debería)
 
         for (PathEntity path : listaDirectorios) {
-            if (path.getPath_dir().equals(folderPath)) {
+            if (path.getPath_dir().equals(newFolderParh)) {
                 return false;
             }
         }
@@ -82,7 +81,7 @@ public class BibliotecaController {
 
         if (completePathList.size() == 0) {
             newPath = new PathEntity();
-            newPath.setPath_dir(folderPath);
+            newPath.setPath_dir(newFolderParh);
             pathList.add(newPath);
             user.setPatchList(pathList);
         }
@@ -90,7 +89,7 @@ public class BibliotecaController {
         if (completePathList.size() > 0) {
             completePathList.forEach(path -> {
 
-                if (path.getPath_dir().equals(folderPath)) {
+                if (path.getPath_dir().equals(newFolderParh)) {
                     noExistPath = false;
                     pathList.add(path);
                 }
@@ -98,40 +97,46 @@ public class BibliotecaController {
 
             if (noExistPath) {
                 newPath = new PathEntity();
-                newPath.setPath_dir(folderPath);
+                newPath.setPath_dir(newFolderParh);
                 pathList.add(newPath);
             }
 
             user.setPatchList(pathList);
         }
+
         if (!userDetailsService.setUSerEntity(user)) {
             return false;
         }
-        watchingDirectory.setInitialPath(folderPath);
+
+        watchingDirectory.setInitialPath(newFolderParh);
+
         return true;
     }
 
     /**
-     * Mapping para cuando accedemos a la configuración de bibliotecas del usuario,
-     * proporciona las que ya tenga configuradas.
+     * Gestiona el tipo de sistema operativo para listar las unidades y carpetas
+     * locales.
      * 
      * @param path
      * @return
      */
-    @PostMapping("/editDirectory")
+    @PostMapping("/getLocalDirs")
     @ResponseBody
-    public ObjectNode editDirectory(@RequestParam("path") String path) {
-        System.out.println("PARA MOVER --> " + path);
-        ObjectNode json = null;
+    public ObjectNode getLocalDirs(@RequestParam("path") String path) {
+
         String osName = System.getProperty("os.name");
         osName = osName.substring(0, 3);
+
         if (path.equals("rootUnits")) {
+
             if (osName.equals("Win")) {
                 json = getWinDir(path);
             } else {
                 json = getUnixDir("/");
             }
+
         } else {
+
             if (osName.equals("Win")) {
                 json = getWinDir(path);
             } else {
@@ -143,16 +148,111 @@ public class BibliotecaController {
     }
 
     /**
+     * Proporciona las unidades e directorios que tenga configurado en un sistema
+     * operativo windows.
+     * 
+     * @param path
+     * @return
+     */
+    public ObjectNode getWinDir(@RequestParam("path") String path) {
+        File[] pathList = null;
+        Map<String, String> dirList = new HashMap<>();
+        String pathResul = "";
+        dirListSorted = new TreeMap<>();
+        json = mapper.createObjectNode();
+
+        if (path.equals("rootUnits")) {
+
+            pathList = File.listRoots();
+
+            for (File f : pathList) {
+                dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
+            }
+
+        } else {
+
+            pathList = GestorArchivosCarpetas.getFileDirList(path);
+            for (File f : pathList) {
+                if (f.isDirectory()) {
+                    dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
+                }
+            }
+
+            path.replace("\\", "\\\\");
+
+            String[] pathSplit = path.split("\\\\");
+            if (pathSplit.length > 1) {
+                pathResul = "";
+                for (int i = 0; i < pathSplit.length - 1; i++) {
+                    if (i == 0) {
+                        pathResul += pathSplit[i] + SEPARADOR;
+                    } else {
+                        pathResul += pathSplit[i] + SEPARADOR;
+                    }
+                }
+            }
+            json.putPOJO("pathFirst", pathResul);
+        }
+
+        dirListSorted.putAll(dirList);
+
+        json.putPOJO("dirList", dirListSorted);
+
+        return json;
+    }
+
+    /**
+     * Proporciona los directorios que tenga configurado en un sistema
+     * operativo basado en unix (linux y mac).
+     * 
+     * @param path
+     * @return
+     */
+    public ObjectNode getUnixDir(@RequestParam("path") String path) {
+        File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
+        Map<String, String> dirList = new HashMap<>();
+        json = mapper.createObjectNode();
+        dirListSorted = new TreeMap<>();
+
+        for (File f : pathList) {
+            if (f.isDirectory()) {
+                dirList.put("/" + f.getName(), f.getAbsolutePath());
+            }
+        }
+
+        String[] pathSplit = path.split(SEPARADOR);
+        String pathResul = SEPARADOR;
+        if (pathSplit.length > 2) {
+            pathResul = "";
+            for (int i = 0; i < pathSplit.length - 1; i++) {
+                if (i != 0) {
+                    pathResul += SEPARADOR + pathSplit[i];
+                } else {
+                    pathResul += pathSplit[i];
+                }
+
+            }
+            json.putPOJO("pathFirst", pathResul);
+        }
+
+        dirListSorted.putAll(dirList);
+        json.putPOJO("dirList", dirListSorted);
+
+        return json;
+    }
+
+    /**
      * Para eliminar directorios de la biblioteca
      * 
      * @param path
      * @return
      */
-    @PostMapping("/delDirectory")
+    @PostMapping("/delLocalDir")
     @ResponseBody
-    public Boolean delDirectory(@RequestParam("path") String pathToDel) {
+    public Boolean delLocalDir(@RequestParam("path") String pathToDel) {
         Set<PathEntity> pathList = userDetailsService.getPathList(DashBoardController.username);
         Set<PathEntity> resultPathList = new HashSet<>();
+
         for (PathEntity path : pathList) {
             if (!path.getPath_dir().equals(pathToDel)) {
                 resultPathList.add(path);
@@ -167,102 +267,6 @@ public class BibliotecaController {
         userDetailsService.cleanPathDataBase();
         WatchingDirectory.stopThreads(pathToDel);
         return true;
-    }
-
-    /**
-     * Para proporcionar los directorios que tenga configurado en un sistema
-     * operativo windows.
-     * 
-     * @param path
-     * @return
-     */
-    public ObjectNode getWinDir(@RequestParam("path") String path) {
-        File[] pathList = null;
-        Map<String, String> dirList = new HashMap<>();
-        if (path.equals("rootUnits")) {
-            pathList = File.listRoots();
-            for (File f : pathList) {
-                dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
-            }
-        } else {
-            boolean unidad = false;
-            for (File f : File.listRoots()) {
-                if (f.getAbsolutePath().equals(path + ":\\")) {
-                    unidad = true;
-                }
-            }
-
-            pathList = GestorArchivosCarpetas.getFileDirList(path);
-            for (File f : pathList) {
-                if (f.isDirectory()) {
-                    dirList.put(f.getAbsolutePath(), f.getAbsolutePath());
-                }
-            }
-        }
-
-        TreeMap<String, String> dirListSorted = new TreeMap<>();
-        dirListSorted.putAll(dirList);
-
-        String pathResul = "";
-        if (!path.equals("rootUnits")) {
-            path.replace("\\", "\\\\");
-            String[] pathSplit = path.split("\\\\");
-            if (pathSplit.length > 1) {
-                pathResul = "";
-                for (int i = 0; i < pathSplit.length - 1; i++) {
-                    if (i == 0) {
-                        pathResul += pathSplit[i] + SEPARADOR;
-                    } else {
-                        pathResul += pathSplit[i] + SEPARADOR;
-                    }
-                }
-            }
-        }
-        ObjectNode json = mapper.createObjectNode();
-        json.putPOJO("dirList", dirListSorted);
-        json.putPOJO("pathFirst", pathResul);
-
-        return json;
-    }
-
-    /**
-     * Para proporcionar los directorios que tenga configurado en un sistema
-     * operativo basado en unix (linux y mac).
-     * 
-     * @param path
-     * @return
-     */
-    public ObjectNode getUnixDir(@RequestParam("path") String path) {
-        File[] pathList = GestorArchivosCarpetas.getFileDirList(path);
-        Map<String, String> dirList = new HashMap<>();
-
-        for (File f : pathList) {
-            if (f.isDirectory()) {
-                dirList.put("/" + f.getName(), f.getAbsolutePath());
-            }
-        }
-
-        TreeMap<String, String> dirListSorted = new TreeMap<>();
-        dirListSorted.putAll(dirList);
-
-        String[] pathSplit = path.split(SEPARADOR);
-        String pathResul = SEPARADOR;
-        if (pathSplit.length > 2) {
-            pathResul = "";
-            for (int i = 0; i < pathSplit.length - 1; i++) {
-                if (i != 0) {
-                    pathResul += SEPARADOR + pathSplit[i];
-                } else {
-                    pathResul += pathSplit[i];
-                }
-
-            }
-        }
-        ObjectNode json = mapper.createObjectNode();
-        json.putPOJO("dirList", dirListSorted);
-        json.putPOJO("pathFirst", pathResul);
-
-        return json;
     }
 
 }
