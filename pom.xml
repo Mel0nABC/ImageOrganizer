@@ -9,17 +9,17 @@
         <version>3.3.2</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.example</groupId>
-    <artifactId>WebLogin</artifactId>
+    <groupId>org.application</groupId>
+    <artifactId>ImageOrganizerStart</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>WebLogin</name>
-    <description>Demo project for Spring Boot</description>
+    <name>ImageOrganizer</name>
+    <description>Image organizer aplication</description>
     <url />
 
     <properties>
         <java.version>22</java.version>
-        <mainclass>com.example.WebLogin.WebLoginApplication</mainclass>
+        <mainclass>org.application.ImageOrganizerStart</mainclass>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->

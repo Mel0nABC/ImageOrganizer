@@ -68,14 +68,13 @@ public class WatchingDirectory {
 
     public static void stopThreads(String path) {
         File[] listSubdir = new File(path).listFiles();
-        
+
         for (File f : listSubdir) {
             if (!delThead(f.getAbsolutePath())) {
                 System.out.println("Stop control directorio --> " + f.getAbsolutePath());
             } else {
                 System.out.println("Error al detener el thread, quizá era un archivo --> " + f.getAbsolutePath());
             }
-
         }
 
         if (!delThead(path)) {

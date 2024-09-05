@@ -14,7 +14,7 @@ import java.nio.file.WatchService;
 import java.time.format.DateTimeFormatter;
 import java.util.GregorianCalendar;
 
-import com.example.WebLogin.WebLoginApplication;
+import com.example.WebLogin.ImageOrganizerStart;
 
 /**
  * Monitorea un directorio específico, controla la actividad en crear, borrar o
@@ -100,7 +100,7 @@ public class WatchingDirectoryThread implements Runnable {
 
     public void writeLog(String activity) {
         FileWriter escribe;
-        File fichero = WebLoginApplication.getLogFilePath();
+        File fichero = ImageOrganizerStart.getLogFilePath();
         String date = new GregorianCalendar().toZonedDateTime()
                 .format(DateTimeFormatter.ofPattern("d MMM uuuu - HH:mm:ss"));
         try {
