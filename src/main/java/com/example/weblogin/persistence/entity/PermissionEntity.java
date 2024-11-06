@@ -1,7 +1,11 @@
 package com.example.weblogin.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Setter
 @Getter
@@ -34,7 +38,5 @@ public class PermissionEntity {
     public void setName(String name) {
         this.name = name;
     }
-
-
 
 }
