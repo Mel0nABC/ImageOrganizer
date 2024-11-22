@@ -18,7 +18,7 @@
     <url />
 
     <properties>
-        <java.version>22</java.version>
+        <java.version>23</java.version>
         <mainclass>org.application.ImageOrganizerStart</mainclass>
     </properties>
     <dependencies>

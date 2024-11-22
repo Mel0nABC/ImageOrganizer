@@ -628,7 +628,13 @@ function getInfoImg(path, urlImg) {
             if (infoImgBox !== null) {
                 infoImgBox.remove();
             }
-            document.getElementById("nav").innerHTML += `<div id="infoImgBox-container" class="ventana-emergente"></div>`;
+
+            const node = document.createElement("div");
+            node.setAttribute("id", "infoImgBox-container");
+            node.setAttribute("class", "ventana-emergente");
+            const seccionCarpetasImagenes = document.getElementById("seccionCarpetasImagenes");
+            seccionCarpetasImagenes.insertBefore(node, seccionCarpetasImagenes.firstChild)
+
             document.getElementById("infoImgBox-container").innerHTML += `<div id="infoImgBox" class="contenido-emergente"></div>`;
             infoImgBox = document.getElementById("infoImgBox");
             const json = JSON.parse(response);
