@@ -1,3 +1,5 @@
 logs/logs.log
 logs*
 applicationDatabase.db
+src/main/resources/templates/PENDIENTES.TXT
+target*
