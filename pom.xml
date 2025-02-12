@@ -18,8 +18,8 @@
     <url />
 
     <properties>
-        <java.version>23</java.version>
-        <mainclass>org.application.ImageOrganizerStart</mainclass>
+        <java.version>17</java.version>
+        <mainclass>com.example.weblogin.ImageOrganizerStart</mainclass>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>10.1.26</version>
+            <version>10.1.35</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
